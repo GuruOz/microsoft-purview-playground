@@ -271,11 +271,32 @@ function editPoolCondition(idx) {
         const cleanVal = newVal.trim();
         variables[idx] = cleanVal;
         
+        let oldParts = oldVal.split(/:\s*(.*)/);
+        let oldBase = oldParts[0];
+        let oldPropsStr = oldParts[1] || '';
+        
+        let newParts = cleanVal.split(/:\s*(.*)/);
+        let newBase = newParts[0];
+        let newPropsStr = newParts[1] || '';
+        
         policies.forEach(p => {
             p.rules.forEach(r => {
                 r.tokens.forEach(t => {
-                    if (t.type === 'variable' && t.val === oldVal) {
-                        t.val = cleanVal;
+                    if (t.type === 'variable') {
+                        if (t.val === oldVal) {
+                            t.val = cleanVal;
+                        } else if (oldVal.includes(':') && oldBase === newBase) {
+                            let tParts = t.val.split(/:\s*(.*)/);
+                            if (tParts.length > 1 && tParts[0] === oldBase) {
+                                let tProps = tParts[1].split(/,\s*/).filter(x => x.trim() !== '');
+                                let propIdx = tProps.indexOf(oldPropsStr);
+                                if (propIdx !== -1) {
+                                    // Replace the property and rebuild the combined token
+                                    tProps[propIdx] = newPropsStr;
+                                    t.val = `${oldBase}: ${tProps.join(', ')}`;
+                                }
+                            }
+                        }
                     }
                 });
             });

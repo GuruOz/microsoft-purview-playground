@@ -4,6 +4,22 @@ window.parseAdvancedRuleAST = function(astNode, localVariables = []) {
 
     if (astNode.ConditionName || astNode.Target) {
         let base = astNode.ConditionName || astNode.Target;
+        if (astNode.Target === 'Message' || astNode.Target === 'Attachment') {
+            if (astNode.ConditionName) base = astNode.ConditionName;
+        }
+        
+        let targetContext = 'Both';
+        if (astNode.Target === 'Message' || astNode.Target === 'Attachment') {
+            targetContext = astNode.Target;
+        }
+        if (Array.isArray(astNode.Value)) {
+            astNode.Value.forEach(v => {
+                if (typeof v === 'object' && v.Target) {
+                    targetContext = v.Target;
+                }
+            });
+        }
+
         let visualizerBase = window.psPropertyMap[base] || base.replace(/([A-Z])/g, ' $1').trim();
 
         let valStrArr = [];
@@ -14,6 +30,7 @@ window.parseAdvancedRuleAST = function(astNode, localVariables = []) {
                     else if (v.Groups) {
                         v.Groups.forEach(g => {
                             if (g.Labels) g.Labels.forEach(l => valStrArr.push(l.Name));
+                            else if (g.Sensitivetypes) g.Sensitivetypes.forEach(s => valStrArr.push(s.Name));
                         });
                     }
                 } else {
@@ -32,7 +49,7 @@ window.parseAdvancedRuleAST = function(astNode, localVariables = []) {
             if (!localVariables.includes(indCond)) localVariables.push(indCond);
         });
 
-        tokens.push({ type: 'variable', val: fullCondition });
+        tokens.push({ type: 'variable', val: fullCondition, targetContext: targetContext });
         return tokens;
     }
 
@@ -130,6 +147,7 @@ window.parsePurviewJSON = function(rawText, currentVariables = []) {
 
                 for (const [key, value] of Object.entries(ruleObj)) {
                     if (skippedKeys.includes(key) || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) continue;
+                    if (value === false) continue;
                     if (typeof value === "string" && value.trim() === "") continue;
                     if (typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 0) continue;
                     if (key.includes("Action") || key.includes("Notify") || key.includes("Block") || key.includes("Generate") || key.includes("AlertProperties")) continue;

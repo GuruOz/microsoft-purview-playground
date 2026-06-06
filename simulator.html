@@ -54,7 +54,7 @@
         </div>
 
         <!-- Simulation Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             
             <!-- Left Side: Simulator Controls -->
             <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700 flex flex-col gap-4">
@@ -77,7 +77,7 @@
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Check conditions to simulate them evaluating as True.</p>
                     <input type="text" id="simSearchInput" placeholder="Search variables..." class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-xs focus:outline-none focus:border-indigo-500 mb-2">
                     
-                    <div id="simulatorVariables" class="flex flex-col gap-2 max-h-[50vh] overflow-y-auto pr-1 custom-scrollbar bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700 p-2">
+                    <div id="simulatorVariables" class="flex flex-col gap-2 max-h-[70vh] overflow-y-auto pr-1 custom-scrollbar bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700 p-2">
                         <!-- Checklist loaded by JS -->
                     </div>
                 </div>
@@ -89,7 +89,7 @@
             </div>
 
             <!-- Right Side: Run Output Trace Timeline -->
-            <div class="lg:col-span-3 bg-white dark:bg-gray-800 p-5 rounded shadow-sm border border-gray-200 dark:border-gray-700 min-h-[60vh] flex flex-col">
+            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-5 rounded shadow-sm border border-gray-200 dark:border-gray-700 min-h-[60vh] flex flex-col">
                 <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
                     <h2 class="text-lg font-bold text-gray-800 dark:text-white">3. Evaluation Trace Timeline</h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Displays the matching trace path of rule evaluations and actions triggered in sequence.</p>

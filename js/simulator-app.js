@@ -26,7 +26,10 @@ function registerEventHandlers() {
 
     const channelSelect = document.getElementById('simChannel');
     if (channelSelect) {
-        channelSelect.onchange = runSimulation;
+        channelSelect.onchange = () => {
+            updateSimulatorVariables();
+            runSimulation();
+        };
     }
 }
 

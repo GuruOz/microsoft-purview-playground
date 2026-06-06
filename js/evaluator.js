@@ -47,21 +47,40 @@ window.evaluatePostfix = function(postfix, truthValues) {
     let stack = [];
     for (let token of postfix) {
         if (token.type === 'variable') {
-            if (token.val in truthValues) {
-                stack.push(!!truthValues[token.val]);
-            } else {
-                let parts = token.val.split(/:\s*(.*)/);
-                if (parts.length > 1 && parts[1]) {
-                    let base = parts[0];
-                    let props = parts[1].split(/,\s*/);
-                    let isTrue = props.some(prop => truthValues[`${base}: ${prop}`] === true);
-                    stack.push(isTrue);
+            let targetCtx = token.targetContext || 'Both';
+            let parts = token.val.split(/:\s*(.*)/);
+            
+            if (parts.length > 1 && parts[1]) {
+                let base = parts[0];
+                let props = parts[1].split(/,\s*/);
+                let isTrue = false;
+                
+                if (base === 'Content contains' || base === 'Content is not labeled') {
+                    if (targetCtx === 'Both') {
+                        isTrue = props.some(prop => truthValues[`[Message] ${base}: ${prop}`] === true || truthValues[`[Attachment] ${base}: ${prop}`] === true);
+                    } else {
+                        isTrue = props.some(prop => truthValues[`[${targetCtx}] ${base}: ${prop}`] === true);
+                    }
                 } else {
-                    stack.push(false);
+                    isTrue = props.some(prop => truthValues[`${base}: ${prop}`] === true);
+                }
+                stack.push(isTrue);
+            } else {
+                if (token.val === 'Content contains' || token.val === 'Content is not labeled') {
+                    if (targetCtx === 'Both') {
+                        stack.push(!!truthValues[`[Message] ${token.val}`] || !!truthValues[`[Attachment] ${token.val}`]);
+                    } else {
+                        stack.push(!!truthValues[`[${targetCtx}] ${token.val}`]);
+                    }
+                } else {
+                    if (token.val in truthValues) {
+                        stack.push(!!truthValues[token.val]);
+                    } else {
+                        stack.push(false);
+                    }
                 }
             }
-        }
-        else if (token.type === 'operator') {
+        } else if (token.type === 'operator') {
             if (token.val === 'NOT') {
                 if (stack.length < 1) throw new Error(`Operator 'NOT' requires a condition.`);
                 let val = stack.pop();

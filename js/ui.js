@@ -62,6 +62,9 @@ function chunkTokensIntoLines(tokens) {
     return lines;
 }
 
+
+
+
 function renderPolicies() {
     const container = document.getElementById('policiesContainer');
     if (!container) return;
@@ -144,6 +147,20 @@ function renderPolicies() {
                     <label class="flex items-center gap-1 text-red-600 dark:text-red-400 font-semibold cursor-pointer"><input type="checkbox" data-action="toggle-stopprocessing" data-pindex="${pIndex}" data-rindex="${rIndex}" ${rule.stopProcessing ? 'checked' : ''}> Stop Processing</label>
                 </div>
             `;
+            
+            let hasServerCondition = false;
+            rule.tokens.forEach(token => {
+                if (token.type === 'variable') {
+                    let base = token.val.split(/:\s*(.*)/)[0];
+                    if (window.getConditionContext(base) === 'server') {
+                        hasServerCondition = true;
+                    }
+                }
+            });
+            if (rule.workloads.email && hasServerCondition) {
+                rHeader += `<div class="text-xs text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 p-2 rounded mt-2 mb-2 font-semibold">⚠️ Contains Server-side only conditions. Will be deferred from Client-side pass in Exchange DLP.</div>`;
+            }
+
             rDiv.innerHTML = rHeader;
 
             const dz = document.createElement('div');
@@ -203,6 +220,27 @@ function renderPolicies() {
                             baseSpan.innerText = base + ':';
                             el.appendChild(baseSpan);
 
+                            if (base === 'Content contains') {
+                                const targetSelect = document.createElement('select');
+                                targetSelect.className = 'ml-1 mr-1 text-xs bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700 rounded px-1 py-0.5 outline-none cursor-pointer font-sans text-gray-700 dark:text-gray-300';
+                                ['Both', 'Message', 'Attachment'].forEach(opt => {
+                                    const option = document.createElement('option');
+                                    option.value = opt;
+                                    option.innerText = opt === 'Both' ? 'Msg+Att' : opt;
+                                    if ((token.targetContext || 'Both') === opt) option.selected = true;
+                                    targetSelect.appendChild(option);
+                                });
+                                targetSelect.onchange = (e) => {
+                                    e.stopPropagation();
+                                    token.targetContext = e.target.value;
+                                    window.saveState();
+                                    // No need to full re-render, the state is updated for the simulator
+                                };
+                                targetSelect.onmousedown = (e) => e.stopPropagation();
+                                targetSelect.onclick = (e) => e.stopPropagation();
+                                el.appendChild(targetSelect);
+                            }
+
                             // Render individual property pills
                             props.forEach((prop, propIdx) => {
                                 const pill = document.createElement('span');
@@ -240,6 +278,10 @@ function renderPolicies() {
                                 window.addProperty(pIndex, rIndex, token.originalIndex);
                             };
                             el.appendChild(addPropBtn);
+                            
+                            const ctxBadgeWrapper = document.createElement('div');
+                            ctxBadgeWrapper.innerHTML = window.renderContextBadge(window.getConditionContext(base));
+                            el.appendChild(ctxBadgeWrapper.firstChild);
                         } else {
                             el.className = 'expression-item px-3 py-1 rounded-md text-sm font-mono flex items-center shadow-sm border cursor-grab active:cursor-grabbing z-10 ';
                             
@@ -261,6 +303,12 @@ function renderPolicies() {
                             textSpan.innerText = token.val;
                             textSpan.className = 'pointer-events-none';
                             el.appendChild(textSpan);
+                            
+                            if (token.type === 'variable') {
+                                const ctxBadgeWrapper = document.createElement('div');
+                                ctxBadgeWrapper.innerHTML = window.renderContextBadge(window.getConditionContext(token.val));
+                                el.appendChild(ctxBadgeWrapper.firstChild);
+                            }
                         }
                         
                         const delBtn = document.createElement('button');
@@ -304,8 +352,8 @@ function populateDropdown() {
     
     purviewConditions[category].forEach(cond => {
         const opt = document.createElement('div');
-        opt.className = 'p-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 condition-option text-gray-700 dark:text-gray-300 transition-colors';
-        opt.innerText = cond.base;
+        opt.className = 'p-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 condition-option text-gray-700 dark:text-gray-300 transition-colors flex justify-between items-center';
+        opt.innerHTML = `<span>${cond.base}</span>${cond.context ? window.renderContextBadge(cond.context) : ''}`;
         opt.dataset.action = 'select-condition';
         opt.dataset.value = cond.base;
         dropdown.appendChild(opt);
@@ -398,9 +446,11 @@ function renderVariables() {
         wrapper.className = 'pool-item-container flex justify-between items-stretch bg-blue-50 dark:bg-gray-800 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-gray-700 rounded shadow-sm text-sm overflow-hidden shrink-0';
         
         const dragHandle = document.createElement('div');
-        dragHandle.className = 'drag-item px-3 py-2 flex-grow hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors break-words cursor-pointer';
+        dragHandle.className = 'drag-item px-3 py-2 flex-grow hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors break-words cursor-pointer flex flex-col justify-center';
         dragHandle.draggable = true;
-        dragHandle.innerText = v;
+        let base = v.split(/:\s*(.*)/)[0];
+        let context = window.getConditionContext(base);
+        dragHandle.innerHTML = `<div class="flex items-center justify-between"><span>${v}</span>${window.renderContextBadge(context)}</div>`;
         dragHandle.dataset.type = 'variable';
         dragHandle.dataset.val = v;
         dragHandle.dataset.source = 'pool';
