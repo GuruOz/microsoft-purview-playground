@@ -4,6 +4,41 @@ The Purview DLP Logic Visualizer is a powerful, interactive web application desi
 
 ---
 
+## 📖 User Guide: How to Use the Application
+
+### Getting Started: Building Your First Rule
+1. **Create a Policy:** On the main page, click **+ New Policy**. You can rename it by clicking the bold "Policy 1" text.
+2. **Add a Condition to the Pool:** 
+   * On the right sidebar, go to **2. Create Condition**.
+   * Select a category (e.g., "Exchange").
+   * Type or select a base condition like "Sender domain is".
+   * An input box will appear. Type the domain (e.g., `contoso.com`) and click **Add to Pool**.
+3. **Draft the Logic:**
+   * Click on the empty rule box under your policy to ensure it is active (it will highlight in blue).
+   * From **1. Operators**, drag `(` into the "Drop Zone" of the rule.
+   * From **3. Condition Pool**, drag your newly created `Sender domain is: contoso.com` condition into the Drop Zone next to the parenthesis.
+   * Drag an operator like `AND`, add another condition, and close it with `)`.
+4. **Refine inline:** If you need to add another domain, simply click the **+ Add** button directly on the condition block inside the rule to add `fabrikam.com`.
+5. **Set Actions:** Check the action checkboxes on the rule (Monitor, Block, etc.) to define what happens when this logic matches.
+
+### Testing the Logic
+1. Look down at the **Truth Table Evaluation**.
+2. It automatically calculates the outputs of your logic for every possible True/False combination of the conditions you dropped in. Use this to verify that your nested `AND`/`OR`/`NOT` statements behave exactly as expected.
+
+### Simulating a Scenario
+1. Switch to the **Simulator Tab** using the top navigation bar.
+2. Select the **Channel** (e.g., Email).
+3. Under the **Variables Checklist**, you will see the conditions you used in your rule. Check the box next to `Sender domain is: contoso.com` to simulate an email arriving from that domain.
+4. Click **Run Simulation**.
+5. The **Evaluation Trace Timeline** will show your rule turning green (MATCH) and summarize that the action (e.g., Block) was triggered.
+
+### Saving, Sharing, and Importing
+* **Share with a Colleague:** Click **Share Link** at the top right. Send the copied URL to a teammate. When they open it, their browser will load your exact policies.
+* **Backup your work:** Click **Import / Export** -> **Export Visualizer State** to save your progress locally.
+* **Import from Microsoft Purview:** If you have exported a policy from Purview via PowerShell to JSON, click **Import / Export**, paste the JSON, and click **Import Purview PowerShell JSON**. The application will automatically translate the Purview rule structure into the visualizer blocks!
+
+---
+
 ## 🌟 Comprehensive Feature List
 
 ### 1. Rule Builder (Index Tab)
@@ -73,35 +108,3 @@ A testing environment to evaluate how your configured policies behave against si
 
 ---
 
-## 📖 User Guide: How to Use the Application
-
-### Getting Started: Building Your First Rule
-1. **Create a Policy:** On the main page, click **+ New Policy**. You can rename it by clicking the bold "Policy 1" text.
-2. **Add a Condition to the Pool:** 
-   * On the right sidebar, go to **2. Create Condition**.
-   * Select a category (e.g., "Exchange").
-   * Type or select a base condition like "Sender domain is".
-   * An input box will appear. Type the domain (e.g., `contoso.com`) and click **Add to Pool**.
-3. **Draft the Logic:**
-   * Click on the empty rule box under your policy to ensure it is active (it will highlight in blue).
-   * From **1. Operators**, drag `(` into the "Drop Zone" of the rule.
-   * From **3. Condition Pool**, drag your newly created `Sender domain is: contoso.com` condition into the Drop Zone next to the parenthesis.
-   * Drag an operator like `AND`, add another condition, and close it with `)`.
-4. **Refine inline:** If you need to add another domain, simply click the **+ Add** button directly on the condition block inside the rule to add `fabrikam.com`.
-5. **Set Actions:** Check the action checkboxes on the rule (Monitor, Block, etc.) to define what happens when this logic matches.
-
-### Testing the Logic
-1. Look down at the **Truth Table Evaluation**.
-2. It automatically calculates the outputs of your logic for every possible True/False combination of the conditions you dropped in. Use this to verify that your nested `AND`/`OR`/`NOT` statements behave exactly as expected.
-
-### Simulating a Scenario
-1. Switch to the **Simulator Tab** using the top navigation bar.
-2. Select the **Channel** (e.g., Email).
-3. Under the **Variables Checklist**, you will see the conditions you used in your rule. Check the box next to `Sender domain is: contoso.com` to simulate an email arriving from that domain.
-4. Click **Run Simulation**.
-5. The **Evaluation Trace Timeline** will show your rule turning green (MATCH) and summarize that the action (e.g., Block) was triggered.
-
-### Saving, Sharing, and Importing
-* **Share with a Colleague:** Click **Share Link** at the top right. Send the copied URL to a teammate. When they open it, their browser will load your exact policies.
-* **Backup your work:** Click **Import / Export** -> **Export Visualizer State** to save your progress locally.
-* **Import from Microsoft Purview:** If you have exported a policy from Purview via PowerShell to JSON, click **Import / Export**, paste the JSON, and click **Import Purview PowerShell JSON**. The application will automatically translate the Purview rule structure into the visualizer blocks!
