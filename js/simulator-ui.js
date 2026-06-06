@@ -327,7 +327,7 @@ function evaluatePhase(parsedRules, ignoreServerConditions) {
                         <span class="font-bold text-green-900 dark:text-green-400">${rule.pName} &rarr; ${rule.rName}</span>
                         <span class="bg-green-600 dark:bg-green-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">MATCH</span>
                     </div>
-                    <div class="font-mono text-xs bg-white dark:bg-gray-900 p-2 border border-green-200 dark:border-green-800 rounded break-words text-gray-700 dark:text-gray-300">${generateEvaluationTrace(rule.tokens, simulatorState)}</div>
+                    <div class="text-xs bg-white dark:bg-gray-900 p-3 border border-green-200 dark:border-green-800 rounded break-words text-gray-700 dark:text-gray-300 shadow-inner">${generateDetailedEvaluationHtml(rule.tokens, simulatorState)}</div>
                     <div class="mt-2 text-xs font-semibold text-green-800 dark:text-green-500">
                         Actions configured: ${actionsDisplay}
                     </div>

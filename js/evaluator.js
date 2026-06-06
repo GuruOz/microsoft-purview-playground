@@ -112,14 +112,35 @@ window.generateEvaluationTrace = function(tokens, currentValues) {
             }
         } else {
             let isTrue = false;
-            if (t.val in currentValues) {
-                isTrue = !!currentValues[t.val];
-            } else {
-                let parts = t.val.split(/:\s*(.*)/);
-                if (parts.length > 1 && parts[1]) {
-                    let base = parts[0];
-                    let props = parts[1].split(/,\s*/);
+            let targetCtx = t.targetContext || 'Both';
+            let parts = t.val.split(/:\s*(.*)/);
+            
+            if (parts.length > 1 && parts[1]) {
+                let base = parts[0];
+                let props = parts[1].split(/,\s*/);
+                
+                if (base === 'Content contains' || base === 'Content is not labeled') {
+                    if (targetCtx === 'Both') {
+                        isTrue = props.some(prop => currentValues[`[Message] ${base}: ${prop}`] === true || currentValues[`[Attachment] ${base}: ${prop}`] === true);
+                    } else {
+                        isTrue = props.some(prop => currentValues[`[${targetCtx}] ${base}: ${prop}`] === true);
+                    }
+                } else {
                     isTrue = props.some(prop => currentValues[`${base}: ${prop}`] === true);
+                }
+            } else {
+                if (t.val === 'Content contains' || t.val === 'Content is not labeled') {
+                    if (targetCtx === 'Both') {
+                        isTrue = !!currentValues[`[Message] ${t.val}`] || !!currentValues[`[Attachment] ${t.val}`];
+                    } else {
+                        isTrue = !!currentValues[`[${targetCtx}] ${t.val}`];
+                    }
+                } else {
+                    if (t.val in currentValues) {
+                        isTrue = !!currentValues[t.val];
+                    } else {
+                        isTrue = false;
+                    }
                 }
             }
             traceTokens.push(isTrue ? 'T' : 'F');
@@ -136,4 +157,87 @@ window.generateEvaluationTrace = function(tokens, currentValues) {
     trace = trace.replace(/\bT\b/g, '<span class="text-green-600 font-black">T</span>');
     trace = trace.replace(/\bF\b/g, '<span class="text-red-600 font-black">F</span>');
     return trace;
+};
+
+window.generateDetailedEvaluationHtml = function(tokens, currentValues) {
+    let traceHtml = `<div class="mb-2 space-y-1">`;
+    let traceTokens = [];
+    let prev = null;
+    
+    for (let t of tokens) {
+        if (t.type === 'operator') {
+            if (t.val === 'AND NOT' && (!prev || prev.val === '(' || prev.val === 'AND' || prev.val === 'OR')) {
+                traceTokens.push('NOT');
+            } else {
+                traceTokens.push(t.val);
+            }
+        } else {
+            let isTrue = false;
+            let targetCtx = t.targetContext || 'Both';
+            let parts = t.val.split(/:\s*(.*)/);
+            
+            if (parts.length > 1 && parts[1]) {
+                let base = parts[0];
+                let props = parts[1].split(/,\s*/);
+                
+                if (base === 'Content contains' || base === 'Content is not labeled') {
+                    if (targetCtx === 'Both') {
+                        isTrue = props.some(prop => currentValues[`[Message] ${base}: ${prop}`] === true || currentValues[`[Attachment] ${base}: ${prop}`] === true);
+                    } else {
+                        isTrue = props.some(prop => currentValues[`[${targetCtx}] ${base}: ${prop}`] === true);
+                    }
+                } else {
+                    isTrue = props.some(prop => currentValues[`${base}: ${prop}`] === true);
+                }
+            } else {
+                if (t.val === 'Content contains' || t.val === 'Content is not labeled') {
+                    if (targetCtx === 'Both') {
+                        isTrue = !!currentValues[`[Message] ${t.val}`] || !!currentValues[`[Attachment] ${t.val}`];
+                    } else {
+                        isTrue = !!currentValues[`[${targetCtx}] ${t.val}`];
+                    }
+                } else {
+                    if (t.val in currentValues) {
+                        isTrue = !!currentValues[t.val];
+                    } else {
+                        isTrue = false;
+                    }
+                }
+            }
+            
+            traceTokens.push(isTrue ? 'T' : 'F');
+            
+            let label = t.val;
+            if ((t.val.startsWith('Content contains') || t.val.startsWith('Content is not labeled')) && targetCtx !== 'Both') {
+                label = `[${targetCtx}] ${label}`;
+            }
+            
+            traceHtml += `
+                <div class="flex items-start gap-2">
+                    <span class="${isTrue ? 'text-green-600' : 'text-red-600'} font-bold w-6 shrink-0">[${isTrue ? 'T' : 'F'}]</span>
+                    <span class="text-gray-700 dark:text-gray-300 flex-1">${label}</span>
+                </div>
+            `;
+        }
+        prev = t;
+    }
+    traceHtml += `</div>`;
+    
+    let trace = traceTokens.join(' ');
+    trace = trace.replace(/\( /g, '(').replace(/ \)/g, ')');
+    trace = trace.replace(/AND NOT \(/g, 'AND NOT(');
+    trace = trace.replace(/NOT\((T|F)\s+(AND|OR)\s+(T|F)\)/g, (m, p1, op, p2) => `NOT(${p1} ${op} ${p2})=${!(op === 'AND' ? (p1==='T' && p2==='T') : (p1==='T' || p2==='T')) ? 'T' : 'F'}`);
+    trace = trace.replace(/NOT\((T|F)\)/g, (m, p1) => `NOT(${p1})=${p1 === 'F' ? 'T' : 'F'}`);
+    trace = trace.replace(/NOT (T|F)/g, (m, p1) => `NOT(${p1})=${p1 === 'F' ? 'T' : 'F'}`);
+    trace = trace.replace(/\bT\b/g, '<span class="text-green-600 font-black">T</span>');
+    trace = trace.replace(/\bF\b/g, '<span class="text-red-600 font-black">F</span>');
+    
+    traceHtml += `
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+            <div class="text-gray-500 text-[10px] uppercase font-bold tracking-wider mb-1">Logic Trace</div>
+            <div class="font-mono text-[11px]">${trace}</div>
+        </div>
+    `;
+    
+    return traceHtml;
 };
