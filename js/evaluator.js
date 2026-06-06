@@ -211,13 +211,35 @@ window.generateDetailedEvaluationHtml = function(tokens, currentValues) {
             if ((t.val.startsWith('Content contains') || t.val.startsWith('Content is not labeled')) && targetCtx !== 'Both') {
                 label = `[${targetCtx}] ${label}`;
             }
+
+            // Check if the previous token in the original array was 'NOT' or an operator that resolved to 'NOT'
+            let isNegated = false;
+            if (prev && prev.type === 'operator' && (prev.val === 'NOT' || (prev.val === 'AND NOT' && traceTokens[traceTokens.length - 2] === 'NOT'))) {
+                isNegated = true;
+            }
             
-            traceHtml += `
-                <div class="flex items-start gap-2">
-                    <span class="${isTrue ? 'text-green-600' : 'text-red-600'} font-bold w-6 shrink-0">[${isTrue ? 'T' : 'F'}]</span>
-                    <span class="text-gray-700 dark:text-gray-300 flex-1">${label}</span>
-                </div>
-            `;
+            let displayHtml = ``;
+            if (isNegated) {
+                displayHtml = `
+                    <div class="flex items-start gap-1 font-mono">
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">NOT(</span>
+                        <div class="flex items-start gap-2 mx-1 border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 px-2 rounded">
+                            <span class="${isTrue ? 'text-green-600' : 'text-red-600'} font-bold w-6 shrink-0 mt-0.5">[${isTrue ? 'T' : 'F'}]</span>
+                            <span class="text-gray-700 dark:text-gray-300 flex-1 font-sans mt-0.5">${label}</span>
+                        </div>
+                        <span class="text-blue-600 dark:text-blue-400 font-bold">)</span>
+                    </div>
+                `;
+            } else {
+                displayHtml = `
+                    <div class="flex items-start gap-2">
+                        <span class="${isTrue ? 'text-green-600' : 'text-red-600'} font-bold w-6 shrink-0">[${isTrue ? 'T' : 'F'}]</span>
+                        <span class="text-gray-700 dark:text-gray-300 flex-1">${label}</span>
+                    </div>
+                `;
+            }
+
+            traceHtml += displayHtml;
         }
         prev = t;
     }
