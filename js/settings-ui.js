@@ -80,12 +80,21 @@ window.refreshLogViewer = function() {
         
         content += `<span class="${colorClass}">[${l.timestamp}] [${l.level}] [${l.component}] ${l.message}</span>\n`;
         if (l.data) {
-            content += `<span class="text-gray-500 dark:text-gray-500 ml-4">${l.data}</span>\n`;
+            content += `<span class="text-gray-500 dark:text-gray-500 ml-4">${JSON.stringify(l.data, null, 2)}</span>\n`;
         }
     });
     
     viewer.innerHTML = content;
     viewer.scrollTop = viewer.scrollHeight;
+};
+
+window.clearDebugLogs = function() {
+    window.dlpLogs = [];
+    try {
+        sessionStorage.removeItem('dlp_debug_logs');
+    } catch(e) {}
+    window.refreshLogViewer();
+    showSettingsToast("Debug logs cleared.", "success");
 };
 
 // Auto refresh logs if viewer is present

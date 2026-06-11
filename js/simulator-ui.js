@@ -419,13 +419,25 @@ function runSimulation() {
             }
         }
     } catch(e) {
+        if (window.logEvent) window.logEvent('error', 'simulator', `Error preparing simulation rules: ${e.message}`, { error: e.message });
         resultEl.innerHTML = `<div class="text-red-600 text-sm font-mono bg-red-50 p-2 border border-red-200 rounded">Error: ${e.message}</div>`;
         return;
     }
 
     if (parsedRules.length === 0) {
+        if (window.logEvent) window.logEvent('info', 'simulator', `No enabled rules to simulate for ${channel}`);
         resultEl.innerHTML = `<div class="text-gray-500 text-sm italic p-2 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 max-w-2xl mx-auto">No enabled rules configured for the ${channel} channel available to simulate.</div>`;
         return;
+    }
+
+    if (window.logEvent) {
+        // Deep copy simulatorState to log the snapshot
+        const stateSnapshot = JSON.parse(JSON.stringify(simulatorState));
+        window.logEvent('info', 'simulator', `Running simulation for channel: ${channel}`, {
+            channel: channel,
+            activeConditions: Object.keys(stateSnapshot).filter(k => stateSnapshot[k] === true),
+            parsedRulesCount: parsedRules.length
+        });
     }
 
     let finalHtml = '';
@@ -463,11 +475,23 @@ function runSimulation() {
         finalHtml += p2.html;
 
         finalHtml += renderSummaryHtml({ phaseActions: combinedActions, matchedAny, overrodeBlock, failedOverrideBlock }, "Combined Final Outcome");
+
+        if (window.logEvent) {
+            window.logEvent('info', 'simulator', `Simulation completed for Email`, {
+                matchedAny, combinedActions, overrodeBlock, failedOverrideBlock
+            });
+        }
     } else {
         let p = evaluatePhase(parsedRules, true);
         finalHtml += '<div class="w-full text-center mb-4 mt-2"><h3 class="font-bold text-xl text-blue-800 dark:text-blue-300">Endpoint Evaluation</h3></div>';
         finalHtml += p.html;
         finalHtml += renderSummaryHtml(p, "Final Outcome");
+
+        if (window.logEvent) {
+            window.logEvent('info', 'simulator', `Simulation completed for Endpoint`, {
+                matchedAny: p.matchedAny, actions: p.phaseActions, overrodeBlock: p.overrodeBlock, failedOverrideBlock: p.failedOverrideBlock
+            });
+        }
     }
 
     resultEl.innerHTML = finalHtml;

@@ -90,6 +90,7 @@ window.parseAdvancedRuleAST = function(astNode, localVariables = []) {
 };
 
 window.parsePurviewJSON = function(rawText, currentVariables = []) {
+    if (window.logEvent) window.logEvent('info', 'parser', 'Starting to parse Microsoft Purview JSON data', { byteLength: rawText.length });
     const data = JSON.parse(rawText);
     const exportArray = Array.isArray(data) ? data : [data];
     
