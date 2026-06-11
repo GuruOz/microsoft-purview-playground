@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rule Summary - DLP Logic Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+        if (localStorage.getItem('dlp_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 p-6 font-sans transition-colors duration-200">
+    
+    <div class="w-full mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <h1 class="text-xl font-bold dark:text-white">Rule Summary</h1>
+            </div>
+            
+            <div class="flex gap-6 items-center">
+                <!-- Navigation -->
+                <nav class="flex gap-4 text-sm font-semibold">
+                    <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Rule Builder
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="simulator.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Simulator Tab
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <span class="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 cursor-default">
+                        Rule Summary
+                    </span>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="settings.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Settings
+                    </a>
+                </nav>
+
+                <div class="flex gap-3 items-center">
+                    <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white" title="Toggle Dark Mode">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                    <button onclick="exportSelectedPDF()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-semibold shadow flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Export to PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+            <div class="lg:col-span-4 space-y-4">
+                <div class="flex justify-between items-center bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">All Policies</h2>
+                    <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                        <input type="checkbox" id="globalSelectAll"> Select All Rules
+                    </label>
+                </div>
+                <div id="summaryContainer" class="space-y-6">
+                    <div class="p-4 text-center text-gray-500 dark:text-gray-400 italic">Loading summaries...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hidden export container for PDF generation -->
+        <div id="pdfExportContainer" class="fixed -left-[9999px] bg-white text-black p-8 w-[800px]"></div>
+
+    </div>
+
+    <!-- Theme Toggling support -->
+    <script>
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('dlp_theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('dlp_theme', 'dark');
+            }
+        };
+    </script>
+    <script src="js/logger.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/nl-generator.js"></script>
+    <script src="js/summary-ui.js"></script>
+</body>
+</html>

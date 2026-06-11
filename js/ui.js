@@ -133,6 +133,7 @@ function renderPolicies() {
                         </div>
                     </div>
                     <div class="flex gap-2">
+                        <button data-action="explain-nl" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold border-r border-gray-300 dark:border-gray-600 pr-2">Explain using Natural Language</button>
                         <button data-action="clear-logic" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold">Clear Logic</button>
                         <button data-action="delete-rule" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold border-l border-red-200 dark:border-red-800 pl-2">Delete Rule</button>
                     </div>
