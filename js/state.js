@@ -50,11 +50,21 @@ localStorage.setItem = function(key, value) {
         try {
             const state = JSON.parse(value);
             const serializedNew = JSON.stringify(state);
-            const serializedCurrent = window.historyPointer >= 0 && window.historyTimeline[window.historyPointer]
-                ? JSON.stringify(window.historyTimeline[window.historyPointer].state)
-                : "";
+            const previousState = window.historyPointer >= 0 && window.historyTimeline[window.historyPointer]
+                ? window.historyTimeline[window.historyPointer].state
+                : null;
+            const serializedCurrent = previousState ? JSON.stringify(previousState) : "";
 
             if (serializedNew !== serializedCurrent) {
+                // Log detailed state diffs
+                if (window.logEvent && window.getObjectDiff) {
+                    const diffs = window.getObjectDiff(previousState, state);
+                    window.logEvent('debug', 'state-trace', `State Trace: ${window.lastLocalStorageAction || "State changed"}`, {
+                        action: window.lastLocalStorageAction || "State changed",
+                        changes: diffs
+                    });
+                }
+
                 if (window.historyPointer < window.historyTimeline.length - 1) {
                     window.historyTimeline = window.historyTimeline.slice(0, window.historyPointer + 1);
                 }
@@ -174,6 +184,14 @@ window.loadState = function() {
                 window.variables = [];
             }
         }
+        
+        window.historyTimeline = [{
+            state: { policies: JSON.parse(JSON.stringify(window.policies)), variables: [...window.variables] },
+            description: "Initial Load",
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        }];
+        window.historyPointer = 0;
+
         if (window.logEvent) {
             window.logEvent('info', 'state', 'State loaded from local storage successfully', {
                 loadedPolicies: window.policies ? window.policies.length : 0,

@@ -106,7 +106,10 @@
         <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto space-y-4">
             <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
                 <h2 class="text-lg font-bold text-gray-800 dark:text-white">Live Debug Logs</h2>
-                <button onclick="window.refreshLogViewer()" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Refresh</button>
+                <div class="flex gap-4">
+                    <button onclick="window.clearDebugLogs()" class="text-sm font-semibold text-red-600 dark:text-red-400 hover:underline">Clear Logs</button>
+                    <button onclick="window.refreshLogViewer()" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Refresh</button>
+                </div>
             </div>
             <div id="debugLogViewer" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-3 rounded h-64 overflow-y-auto font-mono text-xs text-gray-800 dark:text-gray-300 whitespace-pre-wrap break-all">
                 Loading logs...
