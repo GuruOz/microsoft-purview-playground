@@ -82,6 +82,7 @@ window.saveState = function(description = "Action performed") {
     window.lastLocalStorageAction = description;
     const state = { policies: window.policies, variables: window.variables };
     localStorage.setItem(window.STORAGE_KEY, JSON.stringify(state));
+    if (window.logEvent) window.logEvent('info', 'state', `State saved: ${description}`, { policyCount: window.policies.length, variableCount: window.variables.length });
 };
 
 window.loadState = function() {
@@ -173,7 +174,14 @@ window.loadState = function() {
                 window.variables = [];
             }
         }
+        if (window.logEvent) {
+            window.logEvent('info', 'state', 'State loaded from local storage successfully', {
+                loadedPolicies: window.policies ? window.policies.length : 0,
+                loadedVariables: window.variables ? window.variables.length : 0
+            });
+        }
     } catch (e) {
+        if (window.logEvent) window.logEvent('error', 'state', 'Failed to load state', { error: e.message });
         console.error("Failed to load state", e);
     }
 };

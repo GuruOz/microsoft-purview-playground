@@ -53,6 +53,11 @@ function registerEventHandlers() {
             const rIndex = parseInt(target.dataset.rindex);
             clearRuleTokens(pIndex, rIndex);
         }
+        else if (action === 'explain-nl') {
+            const pIndex = parseInt(target.dataset.pindex);
+            const rIndex = parseInt(target.dataset.rindex);
+            showNaturalLanguageExplanation(pIndex, rIndex);
+        }
         
         // Form selections
         else if (action === 'select-condition') {
@@ -806,3 +811,44 @@ window.editProperty = function(pIndex, rIndex, tIndex, propIdx) {
     }
 };
 
+window.showNaturalLanguageExplanation = async function(pIndex, rIndex) {
+    const rule = window.policies[pIndex].rules[rIndex];
+    if (!rule) return;
+
+    let existing = document.getElementById('nlExplanationModal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'nlExplanationModal';
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+    
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 class="text-xl font-bold dark:text-white text-indigo-600 dark:text-indigo-400">Natural Language Explanation</h2>
+                <button onclick="this.closest('#nlExplanationModal').remove()" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
+            </div>
+            <div class="flex-grow overflow-y-auto mb-4">
+                <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-2">${rule.name}</h3>
+                <div id="nlLoadingState" class="text-indigo-600 dark:text-indigo-400 italic">Generating explanation...</div>
+                <p id="nlExplanationText" class="hidden text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 font-medium whitespace-pre-wrap"></p>
+            </div>
+            <div class="flex justify-end pt-2 border-t border-gray-200 dark:border-gray-700">
+                <button onclick="this.closest('#nlExplanationModal').remove()" class="bg-gray-800 dark:bg-gray-600 text-white px-4 py-2 rounded font-semibold hover:bg-gray-900 dark:hover:bg-gray-500">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    try {
+        const text = await window.generateNaturalLanguage(rule);
+        document.getElementById('nlLoadingState').classList.add('hidden');
+        document.getElementById('nlExplanationText').innerText = text;
+        document.getElementById('nlExplanationText').classList.remove('hidden');
+    } catch(e) {
+        document.getElementById('nlLoadingState').classList.add('hidden');
+        document.getElementById('nlExplanationText').innerText = `Error: ${e.message}`;
+        document.getElementById('nlExplanationText').classList.remove('hidden');
+        document.getElementById('nlExplanationText').classList.add('text-red-600', 'dark:text-red-400');
+    }
+};

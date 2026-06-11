@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - DLP Logic Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+        if (localStorage.getItem('dlp_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 p-6 font-sans transition-colors duration-200">
+    
+    <div class="w-full mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                <h1 class="text-xl font-bold dark:text-white">Settings</h1>
+            </div>
+            
+            <div class="flex gap-6 items-center">
+                <!-- Navigation -->
+                <nav class="flex gap-4 text-sm font-semibold">
+                    <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Rule Builder
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="simulator.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Simulator Tab
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="summary.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Rule Summary
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <span class="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 cursor-default">
+                        Settings
+                    </span>
+                </nav>
+
+                <div class="flex gap-3 items-center">
+                    <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white" title="Toggle Dark Mode">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto space-y-6">
+            
+            <h2 class="text-lg font-bold text-gray-800 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">Natural Language Processing</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Explanation Mode</label>
+                    <select id="nlModeSelect" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500">
+                        <option value="static1">Static: "If [Condition] then [Action]"</option>
+                        <option value="static2">Static: "Rule applies when [Condition], resulting in [Action]"</option>
+                        <option value="ai">AI Generated</option>
+                    </select>
+                </div>
+
+                <div id="aiConfigSection" class="space-y-4 hidden p-4 border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 rounded">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">AI Provider</label>
+                        <select id="aiProviderSelect" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500">
+                            <option value="openai">OpenAI (GPT-4o-mini)</option>
+                            <option value="gemini">Google Gemini (1.5 Flash)</option>
+                            <option value="claude">Anthropic Claude (3 Haiku)</option>
+                            <option value="deepseek">DeepSeek (Chat)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">API Key</label>
+                        <input type="password" id="aiApiKeyInput" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500" placeholder="Enter your API key...">
+                        <p class="text-xs text-green-600 dark:text-green-400 mt-2 font-semibold flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            Your API key is safe. It is only stored locally in your browser and is never included in exported JSON or share links.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <button onclick="window.downloadLogs()" class="text-sm font-semibold text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download Debug Logs
+                </button>
+                <button id="saveSettingsBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded text-sm font-semibold shadow transition-colors">Save Settings</button>
+            </div>
+            
+            <div id="settingsToastContainer"></div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 class="text-lg font-bold text-gray-800 dark:text-white">Live Debug Logs</h2>
+                <button onclick="window.refreshLogViewer()" class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:underline">Refresh</button>
+            </div>
+            <div id="debugLogViewer" class="bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700 p-3 rounded h-64 overflow-y-auto font-mono text-xs text-gray-800 dark:text-gray-300 whitespace-pre-wrap break-all">
+                Loading logs...
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Theme Toggling support -->
+    <script>
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('dlp_theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('dlp_theme', 'dark');
+            }
+        };
+    </script>
+    <script src="js/logger.js"></script>
+    <script src="js/nl-generator.js"></script>
+    <script src="js/settings-ui.js"></script>
+</body>
+</html>
