@@ -39,8 +39,11 @@ function loadScript(file) {
 
 // Load in dependency order
 loadScript('js/logger.js');
+loadScript('js/constants.js');
 loadScript('js/state.js');
 loadScript('js/evaluator.js');
+loadScript('js/parser.js');
+loadScript('js/conflict-detector.js');
 
 beforeEach(() => {
     localStorage.clear();

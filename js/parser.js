@@ -237,3 +237,132 @@ window.parseVisualizerJSON = function(rawText) {
 window.serializeVisualizerJSON = function(policies, variables) {
     return JSON.stringify({ variables, policies }, null, 2);
 };
+
+// ---------------------------------------------------------------------------
+// Export to Microsoft Purview PowerShell JSON format (reverse of parsePurviewJSON)
+
+window.serializePurviewJSON = function(policies) {
+    // Build reverse lookup: display name → PowerShell property name
+    const reverseMap = {};
+    for (const [ps, display] of Object.entries(window.psPropertyMap)) {
+        if (!reverseMap[display]) reverseMap[display] = ps;
+    }
+
+    function conditionTokenToAstNode(token) {
+        const val = token.val;
+        const colonIdx = val.indexOf(':');
+
+        if (colonIdx === -1) {
+            const psName = reverseMap[val] || val;
+            return { ConditionName: psName, Value: [true] };
+        }
+
+        const base = val.substring(0, colonIdx).trim();
+        const props = val.substring(colonIdx + 1).trim().split(/,\s*/).map(p => p.trim()).filter(Boolean);
+        const psName = reverseMap[base] || base;
+
+        if (base === 'Content contains') {
+            const valueObjs = props.map(p => ({ name: p }));
+            const node = { ConditionName: psName, Value: valueObjs };
+            if (token.targetContext && token.targetContext !== 'Both') {
+                node.Target = token.targetContext;
+            }
+            return node;
+        }
+
+        return { ConditionName: psName, Value: props };
+    }
+
+    function flattenOp(node, opType) {
+        if (node.type !== opType) return [node];
+        return [...flattenOp(node.left, opType), ...flattenOp(node.right, opType)];
+    }
+
+    function treeNodeToAst(node) {
+        if (!node) return null;
+        if (node.type === 'leaf') return conditionTokenToAstNode(node.token);
+        if (node.type === 'not') {
+            return { Operator: 'Not', SubConditions: [treeNodeToAst(node.operand)] };
+        }
+        if (node.type === 'and' || node.type === 'or') {
+            const op = node.type === 'and' ? 'And' : 'Or';
+            const children = flattenOp(node, node.type);
+            return { Operator: op, SubConditions: children.map(treeNodeToAst) };
+        }
+        return null;
+    }
+
+    function postfixToTree(postfix) {
+        const stack = [];
+        for (const token of postfix) {
+            if (token.type === 'variable') {
+                stack.push({ type: 'leaf', token });
+            } else if (token.val === 'NOT') {
+                const operand = stack.pop();
+                stack.push({ type: 'not', operand });
+            } else if (token.val === 'AND' || token.val === 'OR') {
+                const right = stack.pop();
+                const left = stack.pop();
+                stack.push({ type: token.val.toLowerCase(), left, right });
+            } else if (token.val === 'AND NOT') {
+                const right = stack.pop();
+                const left = stack.pop();
+                stack.push({ type: 'and', left, right: { type: 'not', operand: right } });
+            }
+        }
+        return stack[0] || null;
+    }
+
+    function tokensToConditionAst(tokens) {
+        if (!tokens || tokens.length === 0) return null;
+        const relevant = tokens.filter(t => t.type === 'variable' || t.type === 'operator');
+        if (relevant.length === 0) return null;
+        if (relevant.length === 1 && relevant[0].type === 'variable') {
+            return conditionTokenToAstNode(relevant[0]);
+        }
+        const postfix = window.infixToPostfix(relevant);
+        const tree = postfixToTree(postfix);
+        return treeNodeToAst(tree);
+    }
+
+    const output = policies.map((policy, _pIdx) => {
+        return {
+            PolicyName: policy.name,
+            Rules: (policy.rules || []).map((rule, rIdx) => {
+                const workloads = [];
+                if (!rule.workloads || rule.workloads.email !== false) workloads.push('Exchange');
+                if (rule.workloads && rule.workloads.endpoint) workloads.push('EndpointDevices');
+
+                const actions = rule.actions || {};
+                const ruleObj = {
+                    Name: rule.name,
+                    DisplayName: rule.name,
+                    Disabled: rule.enabled === false,
+                    Priority: rIdx,
+                    StopPolicyProcessing: !!rule.stopProcessing,
+                    Workload: workloads.join(',') || 'Exchange',
+                    BlockAccess: !!actions.block,
+                    NotifyUser: actions.notify ? ['Owner'] : [],
+                    NotifyAllowOverride: !!actions.override,
+                    GenerateAlert: actions.monitor ? ['SiteAdmin'] : [],
+                    GenerateIncidentReport: actions.monitor ? ['SiteAdmin'] : []
+                };
+
+                if (rule.tokens && rule.tokens.length > 0) {
+                    try {
+                        const conditionAst = tokensToConditionAst(rule.tokens);
+                        if (conditionAst) {
+                            ruleObj.AdvancedRule = JSON.stringify({ Version: '1.0', Condition: conditionAst });
+                        }
+                    } catch (_e) {
+                        // Leave AdvancedRule unset if token expression is invalid
+                    }
+                }
+
+                return ruleObj;
+            })
+        };
+    });
+
+    return JSON.stringify(output, null, 2);
+};

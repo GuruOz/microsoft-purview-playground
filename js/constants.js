@@ -60,6 +60,35 @@ window.purviewConditions = {
         { base: "Document size equals or is greater than", requiresProp: true },
         { base: "File created by a restricted app", requiresProp: true },
         { base: "File downloaded from", requiresProp: true }
+    ],
+    sharepoint: [
+        { base: "Content contains", requiresProp: true },
+        { base: "Content is not labeled", requiresProp: false },
+        { base: "Document property is", requiresProp: true },
+        { base: "Document name contains words", requiresProp: true },
+        { base: "Document name matches patterns", requiresProp: true },
+        { base: "Document size equals or is greater than", requiresProp: true },
+        { base: "Document could not be scanned", requiresProp: false },
+        { base: "Document didn't complete scanning", requiresProp: false },
+        { base: "Attachment's file extension is", requiresProp: true },
+        { base: "Document is password protected", requiresProp: false },
+        { base: "Recipient scope/Content is shared with", requiresProp: true },
+        { base: "Created by", requiresProp: true },
+        { base: "Last modified by", requiresProp: true },
+        { base: "Site URL contains words", requiresProp: true },
+        { base: "Site URL matches patterns", requiresProp: true }
+    ],
+    teams: [
+        { base: "Content contains", requiresProp: true },
+        { base: "Content is not labeled", requiresProp: false },
+        { base: "Sender is", requiresProp: true },
+        { base: "Sender domain is", requiresProp: true },
+        { base: "Recipient is", requiresProp: true },
+        { base: "Recipient domain is", requiresProp: true },
+        { base: "The sender is a member of", requiresProp: true },
+        { base: "Sent to member of", requiresProp: true },
+        { base: "Message type matches", requiresProp: true },
+        { base: "Sender scope", requiresProp: true }
     ]
 };
 
@@ -96,7 +125,24 @@ window.psPropertyMap = {
     "MessageTypeMatches": "Message type matches",
     "HeaderContainsWords": "Header contains words or phrases",
     "HeaderMatchesPatterns": "Header matches patterns",
-    "ContentIsShared": "Recipient scope/Content is shared with"
+    "ContentIsShared": "Recipient scope/Content is shared with",
+    // SharePoint / OneDrive
+    "SharedWith": "Recipient scope/Content is shared with",
+    "CreatedBy": "Created by",
+    "ModifiedBy": "Last modified by",
+    "SPContentContainsSensitiveInformation": "Content contains",
+    "SPDocumentIsPasswordProtected": "Document is password protected",
+    "SPDocumentSizeOver": "Document size equals or is greater than",
+    "SPDocumentNameContainsWords": "Document name contains words",
+    "SPDocumentNameMatchesPatterns": "Document name matches patterns",
+    "SPDocumentPropertyEquals": "Document property is",
+    "SPDocumentCouldNotBeScanned": "Document could not be scanned",
+    "SiteURLContainsWords": "Site URL contains words",
+    "SiteURLMatchesPatterns": "Site URL matches patterns",
+    // Teams
+    "TeamsMessageMemberOf": "Sent to member of",
+    "TeamsMessageSenderDomain": "Sender domain is",
+    "TeamsMessageRecipientDomain": "Recipient domain is"
 };
 
 window.getConditionContext = function(base) {
