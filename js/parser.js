@@ -133,7 +133,7 @@ window.parsePurviewJSON = function(rawText, currentVariables = []) {
 
             if (ruleObj.AdvancedRule) {
                 let ast;
-                try { ast = JSON.parse(ruleObj.AdvancedRule); } catch(e) {}
+                try { ast = JSON.parse(ruleObj.AdvancedRule); } catch(_e) {}
                 if (ast && ast.Condition) {
                     tokens = window.parseAdvancedRuleAST(ast.Condition, localVariables);
                     if (tokens.length > 0 && tokens[0].val === 'AND NOT') {

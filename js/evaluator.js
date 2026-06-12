@@ -1,5 +1,6 @@
 window.getPrecedence = function(op) {
-    if (op === 'NOT' || op === 'AND NOT' || op === 'AND') return 2;
+    if (op === 'NOT') return 3;
+    if (op === 'AND NOT' || op === 'AND') return 2;
     if (op === 'OR') return 1;
     return 0;
 };
