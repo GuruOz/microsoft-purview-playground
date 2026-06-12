@@ -66,6 +66,9 @@ function registerEventHandlers() {
         }
         
         // Condition Pool Actions
+        else if (action === 'add-to-rule') {
+            addTokenFromClick('variable', target.dataset.val);
+        }
         else if (action === 'edit-pool') {
             const index = parseInt(target.dataset.index);
             editPoolCondition(index);

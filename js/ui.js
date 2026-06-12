@@ -482,6 +482,14 @@ function renderVariables() {
         const btnGroup = document.createElement('div');
         btnGroup.className = 'flex items-stretch shrink-0';
 
+        const addBtn = document.createElement('button');
+        addBtn.className = 'px-3 py-2 hover:bg-green-100 dark:hover:bg-green-900/30 border-l border-blue-200 dark:border-gray-600 text-green-700 dark:text-green-400 transition-colors text-xs font-bold';
+        addBtn.textContent = '+ Add';
+        addBtn.title = "Add to active rule";
+        addBtn.setAttribute('aria-label', `Add condition to rule: ${v}`);
+        addBtn.dataset.action = 'add-to-rule';
+        addBtn.dataset.val = v;
+
         const editBtn = document.createElement('button');
         editBtn.className = 'px-3 py-2 hover:bg-blue-200 dark:hover:bg-gray-700 font-bold border-l border-blue-200 dark:border-gray-600 text-blue-600 dark:text-blue-400 transition-colors';
         editBtn.innerHTML = '&#9998;';
@@ -498,6 +506,7 @@ function renderVariables() {
         delBtn.dataset.action = 'delete-pool';
         delBtn.dataset.index = idx;
 
+        btnGroup.appendChild(addBtn);
         btnGroup.appendChild(editBtn);
         btnGroup.appendChild(delBtn);
 
