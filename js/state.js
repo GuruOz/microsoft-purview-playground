@@ -101,67 +101,106 @@ window.saveState = function(description = "Action performed") {
     if (window.logEvent) window.logEvent('info', 'state', `State saved: ${description}`, { policyCount: window.policies.length, variableCount: window.variables.length });
 };
 
+// --- Share link helpers ---
+
+// Gzip-compress a string and return a prefixed base64 token.
+// Returns a Promise. Falls back to legacy encoding if CompressionStream unavailable.
+window._compressStateStr = async function(jsonStr) {
+    if (typeof CompressionStream === 'undefined') return null;
+    const bytes = new TextEncoder().encode(jsonStr);
+    const cs = new CompressionStream('gzip');
+    const writer = cs.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const compressed = await new Response(cs.readable).arrayBuffer();
+    const b64 = btoa(String.fromCharCode(...new Uint8Array(compressed)));
+    return 'z1.' + b64;
+};
+
+// Decompress a 'z1.' prefixed base64 token back to JSON string.
+window._decompressStateStr = async function(token) {
+    const b64 = token.slice(3); // strip 'z1.' prefix
+    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const ds = new DecompressionStream('gzip');
+    const writer = ds.writable.getWriter();
+    writer.write(bytes);
+    writer.close();
+    const decompressed = await new Response(ds.readable).arrayBuffer();
+    return new TextDecoder().decode(decompressed);
+};
+
+// Apply a parsed state object to window globals and trigger rendering.
+function _applyUrlState(state) {
+    let loadedPolicies = [];
+    let loadedVariables = [];
+
+    if (state.policies && Array.isArray(state.policies)) {
+        loadedPolicies = state.policies.map(p => {
+            if (p.enabled === undefined) p.enabled = true;
+            p.rules = (p.rules || []).map(r => {
+                if (r.enabled === undefined) r.enabled = true;
+                if (!r.actions) r.actions = { monitor: false, notify: false, override: false, block: false };
+                if (r.stopProcessing === undefined) r.stopProcessing = false;
+                if (!r.workloads) r.workloads = { email: true, endpoint: true };
+                return r;
+            });
+            return p;
+        });
+    }
+    if (state.variables && Array.isArray(state.variables)) {
+        loadedVariables = state.variables;
+    }
+
+    window.policies = loadedPolicies;
+    window.variables = loadedVariables;
+    window.saveState("Loaded shared workspace via link");
+
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.delete('state');
+    window.history.replaceState({}, document.title, newUrl.toString());
+
+    setTimeout(() => {
+        if (window.showToast) window.showToast("Shared visualizer state loaded successfully!", "success");
+    }, 100);
+}
+
 window.loadState = function() {
     try {
         // 1. Check if there is a shareable state in the URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const urlState = urlParams.get('state');
-        
+
         if (urlState) {
-            try {
-                // Unicode-safe Base64 decode
-                const jsonStr = decodeURIComponent(atob(urlState).split('').map(c => {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                
-                const state = JSON.parse(jsonStr);
-                let loadedPolicies = [];
-                let loadedVariables = [];
-                
-                if (state.policies && Array.isArray(state.policies)) {
-                    loadedPolicies = state.policies.map(p => {
-                        if (p.enabled === undefined) p.enabled = true;
-                        p.rules = p.rules.map(r => {
-                            if (r.enabled === undefined) r.enabled = true;
-                            if (!r.actions) r.actions = { monitor: false, notify: false, override: false, block: false };
-                            if (r.stopProcessing === undefined) r.stopProcessing = false;
-                            if (!r.workloads) r.workloads = { email: true, endpoint: true };
-                            return r;
-                        });
-                        return p;
-                    });
+            // Compressed link (z1. prefix) — decompress asynchronously then render
+            if (urlState.startsWith('z1.')) {
+                window._decompressStateStr(urlState).then(jsonStr => {
+                    _applyUrlState(JSON.parse(jsonStr));
+                }).catch(err => {
+                    console.error("Failed to decompress shared state:", err);
+                    setTimeout(() => {
+                        if (window.showToast) window.showToast("Could not load shared state. The URL may be corrupted.", "error");
+                    }, 100);
+                });
+                // Fall through to load localStorage state immediately so the app is usable;
+                // the async callback will overwrite it when decompression completes.
+            } else {
+                try {
+                    // Legacy: Unicode-safe Base64 decode (no compression)
+                    const jsonStr = decodeURIComponent(atob(urlState).split('').map(c => {
+                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                    }).join(''));
+
+                    _applyUrlState(JSON.parse(jsonStr));
+
+                    return; // Return early, don't load from localStorage
+                } catch (decodingError) {
+                    console.error("Failed to parse shared state from URL:", decodingError);
+                    setTimeout(() => {
+                        if (window.showToast) {
+                            window.showToast("Could not load shared state. The URL may be corrupted.", "error");
+                        }
+                    }, 100);
                 }
-                
-                if (state.variables && Array.isArray(state.variables)) {
-                    loadedVariables = state.variables;
-                }
-                
-                window.policies = loadedPolicies;
-                window.variables = loadedVariables;
-                
-                // Save to local storage (persists and sets up Undo history)
-                window.saveState("Loaded shared workspace via link");
-                
-                // Clean the URL by removing ?state=... to keep it clean and prevent future reloads overriding new changes
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.delete('state');
-                window.history.replaceState({}, document.title, newUrl.toString());
-                
-                // Show a modern toast success message
-                setTimeout(() => {
-                    if (window.showToast) {
-                        window.showToast("Shared visualizer state loaded successfully!", "success");
-                    }
-                }, 100);
-                
-                return; // Return early, don't load from localStorage
-            } catch (decodingError) {
-                console.error("Failed to parse shared state from URL:", decodingError);
-                setTimeout(() => {
-                    if (window.showToast) {
-                        window.showToast("Could not load shared state. The URL may be corrupted.", "error");
-                    }
-                }, 100);
             }
         }
         
@@ -210,20 +249,23 @@ window.loadState = function() {
     }
 };
 
-window.shareState = function() {
+window.shareState = async function() {
     try {
         const state = { policies: window.policies, variables: window.variables };
         const jsonStr = JSON.stringify(state);
-        
-        // Unicode-safe Base64 encode
-        const base64 = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => {
-            return String.fromCharCode('0x' + p1);
-        }));
-        
+
+        // Prefer gzip compression (smaller URLs); fall back to legacy encoding
+        let param = await window._compressStateStr(jsonStr);
+        if (!param) {
+            // Legacy: Unicode-safe Base64 with no compression prefix
+            param = btoa(encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+                String.fromCharCode('0x' + p1)));
+        }
+
         const url = new URL(window.location.href);
-        url.searchParams.set('state', base64);
+        url.searchParams.set('state', param);
         const shareUrl = url.toString();
-        
+
         navigator.clipboard.writeText(shareUrl).then(() => {
             if (window.showToast) {
                 window.showToast("Shareable link copied to clipboard!", "success");

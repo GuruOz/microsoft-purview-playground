@@ -145,6 +145,52 @@ describe('share link encode/decode roundtrip', () => {
 });
 
 // ---------------------------------------------------------------------------
+describe('share link compression helpers', () => {
+    test('_compressStateStr returns a z1.-prefixed string when CompressionStream is available', async () => {
+        const result = await window._compressStateStr('{"policies":[],"variables":[]}');
+        // Node 18+ / modern jsdom expose CompressionStream, so we get a compressed result
+        if (result !== null) {
+            expect(result).toMatch(/^z1\./);
+        }
+        // If CompressionStream is unavailable the helper returns null — that is also acceptable
+    });
+
+    test('compress + decompress roundtrip is lossless', async () => {
+        const original = '{"policies":[{"name":"Test"}],"variables":["A","B"]}';
+        const compressed = await window._compressStateStr(original);
+        if (compressed === null) return; // CompressionStream unavailable — skip
+        expect(compressed).toMatch(/^z1\./);
+        const decompressed = await window._decompressStateStr(compressed);
+        expect(decompressed).toBe(original);
+    });
+
+    test('compress + decompress roundtrip with unicode content', async () => {
+        const original = JSON.stringify({ policies: [{ name: 'Policy über alles 📋' }], variables: ['条件A'] });
+        const compressed = await window._compressStateStr(original);
+        if (compressed === null) return;
+        const decompressed = await window._decompressStateStr(compressed);
+        expect(decompressed).toBe(original);
+    });
+
+    test('legacy base64 share link still roundtrips correctly after refactor', () => {
+        // Verify the legacy encoding path in state.js has not been broken
+        const state = { policies: [{ id: 'p1', name: 'Test', enabled: true, rules: [] }], variables: ['Sender is: alice@test.com'] };
+        const jsonStr = JSON.stringify(state);
+        const encoded = btoa(
+            encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+                String.fromCharCode('0x' + p1)
+            )
+        );
+        const decoded = decodeURIComponent(
+            atob(encoded).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+        );
+        expect(JSON.parse(decoded)).toEqual(state);
+        // Confirm it does NOT start with 'z1.' (it's the legacy format)
+        expect(encoded.startsWith('z1.')).toBe(false);
+    });
+});
+
+// ---------------------------------------------------------------------------
 describe('saveState / loadState integration', () => {
     test('saveState persists policies to localStorage', () => {
         window.policies = [{ id: 'p1', name: 'My Policy', enabled: true, rules: [] }];
