@@ -15,10 +15,15 @@ function showToast(message, type = 'error') {
             : 'bg-green-50 dark:bg-green-900/90 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
     }`;
     
-    toast.innerHTML = `
-        <span class="text-sm font-semibold">${message}</span>
-        <button onclick="this.parentElement.remove()" class="text-lg leading-none font-bold opacity-60 hover:opacity-100 focus:outline-none">&times;</button>
-    `;
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'text-sm font-semibold';
+    msgSpan.textContent = message;
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'text-lg leading-none font-bold opacity-60 hover:opacity-100 focus:outline-none';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.onclick = () => toast.remove();
+    toast.appendChild(msgSpan);
+    toast.appendChild(closeBtn);
     document.body.appendChild(toast);
     
     setTimeout(() => {
@@ -86,7 +91,7 @@ function renderPolicies() {
                         <button data-action="move-policy-up" data-pindex="${pIndex}" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                         <button data-action="move-policy-down" data-pindex="${pIndex}" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === policies.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                     </div>
-                    <h2 class="font-bold text-lg outline-none focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="policy" data-pindex="${pIndex}">${policy.name}</h2>
+                    <h2 class="font-bold text-lg outline-none focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="policy" data-pindex="${pIndex}">${window.escapeHtml(policy.name)}</h2>
                     <span class="text-xs bg-gray-300 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 font-mono">Priority ${pIndex}</span>
                     <label class="flex items-center gap-1 text-sm font-normal ml-4 cursor-pointer dark:text-gray-300"><input type="checkbox" data-action="toggle-policy" data-pindex="${pIndex}" ${policy.enabled ? 'checked' : ''}> Enabled</label>
                 </div>
@@ -123,7 +128,7 @@ function renderPolicies() {
                             <button data-action="move-rule-up" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                             <button data-action="move-rule-down" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === policy.rules.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                         </div>
-                        <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${rule.name}</h3>
+                        <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
                         <span class="text-xs font-mono ${isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-gray-400'}">Priority ${rIndex} ${isActive ? '(Editing)' : ''}</span>
                         
                         <div class="flex gap-3 ml-2 border-l border-gray-300 dark:border-gray-600 pl-3" onclick="event.stopPropagation()">
@@ -451,7 +456,7 @@ function renderVariables() {
         dragHandle.draggable = true;
         let base = v.split(/:\s*(.*)/)[0];
         let context = window.getConditionContext(base);
-        dragHandle.innerHTML = `<div class="flex items-center justify-between"><span>${v}</span>${window.renderContextBadge(context)}</div>`;
+        dragHandle.innerHTML = `<div class="flex items-center justify-between"><span>${window.escapeHtml(v)}</span>${window.renderContextBadge(context)}</div>`;
         dragHandle.dataset.type = 'variable';
         dragHandle.dataset.val = v;
         dragHandle.dataset.source = 'pool';
@@ -607,7 +612,7 @@ function generateTable() {
 
     let headHtml = '<tr>';
     uniqueVars.forEach(v => {
-        headHtml += `<th class="border border-gray-300 dark:border-gray-600 p-2 text-xs font-semibold whitespace-normal break-words min-w-[100px] max-w-[150px] text-center bg-gray-50 dark:bg-gray-800 align-top">${v}</th>`;
+        headHtml += `<th class="border border-gray-300 dark:border-gray-600 p-2 text-xs font-semibold whitespace-normal break-words min-w-[100px] max-w-[150px] text-center bg-gray-50 dark:bg-gray-800 align-top">${window.escapeHtml(v)}</th>`;
     });
     headHtml += `<th class="border border-gray-300 dark:border-gray-600 p-2 bg-blue-50 dark:bg-gray-800 w-full text-xs font-semibold align-top text-center">Evaluation Trace</th>`;
     headHtml += `<th class="border border-gray-300 dark:border-gray-600 p-2 bg-gray-800 dark:bg-gray-600 text-white font-bold text-center w-20 text-xs align-top">FINAL</th></tr>`;

@@ -3,7 +3,8 @@
 window.nlSettings = {
     mode: localStorage.getItem('dlp_nl_mode') || 'static1', // 'static1', 'static2', 'ai'
     aiProvider: localStorage.getItem('dlp_ai_provider') || 'openai',
-    aiApiKey: localStorage.getItem('dlp_ai_apikey') || ''
+    // API key stored in sessionStorage only — never persisted to disk or shared
+    aiApiKey: sessionStorage.getItem('dlp_ai_apikey') || ''
 };
 
 window.saveNLSettings = function(mode, provider, key) {
@@ -12,7 +13,7 @@ window.saveNLSettings = function(mode, provider, key) {
     window.nlSettings.aiApiKey = key;
     localStorage.setItem('dlp_nl_mode', mode);
     localStorage.setItem('dlp_ai_provider', provider);
-    localStorage.setItem('dlp_ai_apikey', key);
+    sessionStorage.setItem('dlp_ai_apikey', key);
 };
 
 window.generateStaticNL = function(rule, mode) {

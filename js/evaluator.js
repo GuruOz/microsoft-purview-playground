@@ -219,13 +219,14 @@ window.generateDetailedEvaluationHtml = function(tokens, currentValues) {
             }
             
             let displayHtml = ``;
+            const escapedLabel = window.escapeHtml(label);
             if (isNegated) {
                 displayHtml = `
                     <div class="flex items-start gap-1 font-mono">
                         <span class="text-blue-600 dark:text-blue-400 font-bold">NOT(</span>
                         <div class="flex items-start gap-2 mx-1 border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 px-2 rounded">
                             <span class="${isTrue ? 'text-green-600' : 'text-red-600'} font-bold w-6 shrink-0 mt-0.5">[${isTrue ? 'T' : 'F'}]</span>
-                            <span class="text-gray-700 dark:text-gray-300 flex-1 font-sans mt-0.5">${label}</span>
+                            <span class="text-gray-700 dark:text-gray-300 flex-1 font-sans mt-0.5">${escapedLabel}</span>
                         </div>
                         <span class="text-blue-600 dark:text-blue-400 font-bold">)</span>
                     </div>
@@ -234,7 +235,7 @@ window.generateDetailedEvaluationHtml = function(tokens, currentValues) {
                 displayHtml = `
                     <div class="flex items-start gap-2">
                         <span class="${isTrue ? 'text-green-600' : 'text-red-600'} font-bold w-6 shrink-0">[${isTrue ? 'T' : 'F'}]</span>
-                        <span class="text-gray-700 dark:text-gray-300 flex-1">${label}</span>
+                        <span class="text-gray-700 dark:text-gray-300 flex-1">${escapedLabel}</span>
                     </div>
                 `;
             }

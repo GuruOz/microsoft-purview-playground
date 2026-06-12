@@ -258,7 +258,7 @@ function evaluatePhase(parsedRules, ignoreServerConditions) {
             html += `
                 <div class="w-full max-w-2xl p-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded shadow-sm opacity-60">
                     <div class="flex justify-between items-center">
-                        <span class="font-semibold text-red-700 dark:text-red-400 opacity-60">${rule.pName} &rarr; ${rule.rName}</span>
+                        <span class="font-semibold text-red-700 dark:text-red-400 opacity-60">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
                         <span class="text-red-500 dark:text-red-500 font-bold text-[10px] uppercase tracking-wide">Skipped (Pass Halted)</span>
                     </div>
                 </div>
@@ -283,7 +283,7 @@ function evaluatePhase(parsedRules, ignoreServerConditions) {
             html += `
                 <div class="w-full max-w-2xl p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded shadow-sm">
                     <div class="flex justify-between items-center">
-                        <span class="font-semibold text-purple-700 dark:text-purple-400">${rule.pName} &rarr; ${rule.rName}</span>
+                        <span class="font-semibold text-purple-700 dark:text-purple-400">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
                         <span class="text-purple-600 dark:text-purple-400 font-bold text-[10px] uppercase tracking-wide">Deferred to Server</span>
                     </div>
                 </div>
@@ -324,12 +324,12 @@ function evaluatePhase(parsedRules, ignoreServerConditions) {
             html += `
                 <div class="w-full max-w-2xl p-4 bg-green-50 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded shadow-md relative">
                     <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-green-900 dark:text-green-400">${rule.pName} &rarr; ${rule.rName}</span>
+                        <span class="font-bold text-green-900 dark:text-green-400">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
                         <span class="bg-green-600 dark:bg-green-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">MATCH</span>
                     </div>
                     <div class="text-xs bg-white dark:bg-gray-900 p-3 border border-green-200 dark:border-green-800 rounded break-words text-gray-700 dark:text-gray-300 shadow-inner">${generateDetailedEvaluationHtml(rule.tokens, simulatorState)}</div>
                     <div class="mt-2 text-xs font-semibold text-green-800 dark:text-green-500">
-                        Actions configured: ${actionsDisplay}
+                        Actions configured: ${window.escapeHtml(actionsDisplay)}
                     </div>
                 </div>
             `;
@@ -339,7 +339,7 @@ function evaluatePhase(parsedRules, ignoreServerConditions) {
                 stoppedProcessing = true;
                 let reason = rule.stopProcessing ? 'Stop Processing' : 'Straight Block';
                 html += `<div class="h-6 w-1 bg-red-500 rounded my-1 mx-auto"></div>`;
-                html += `<div class="w-full max-w-2xl p-2 bg-red-100 dark:bg-red-900/30 border-2 border-red-400 dark:border-red-700 text-red-800 dark:text-red-400 text-center font-bold text-sm rounded shadow-md uppercase tracking-wide">Evaluation Halted by ${rule.rName} (${reason})</div>`;
+                html += `<div class="w-full max-w-2xl p-2 bg-red-100 dark:bg-red-900/30 border-2 border-red-400 dark:border-red-700 text-red-800 dark:text-red-400 text-center font-bold text-sm rounded shadow-md uppercase tracking-wide">Evaluation Halted by ${window.escapeHtml(rule.rName)} (${window.escapeHtml(reason)})</div>`;
                 if (i < parsedRules.length - 1) html += `<div class="text-red-300 dark:text-red-700 text-xl leading-none font-bold">&#8595;</div>`;
             } else {
                 if (i < parsedRules.length - 1) html += `<div class="text-green-300 dark:text-green-700 text-xl leading-none font-bold">&#8595;</div>`;
@@ -348,7 +348,7 @@ function evaluatePhase(parsedRules, ignoreServerConditions) {
             html += `
                 <div class="w-full max-w-2xl p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm opacity-75">
                     <div class="flex justify-between items-center">
-                        <span class="font-semibold text-gray-600 dark:text-gray-400">${rule.pName} &rarr; ${rule.rName}</span>
+                        <span class="font-semibold text-gray-600 dark:text-gray-400">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
                         <span class="text-gray-400 dark:text-gray-500 font-bold text-xs uppercase tracking-wide">Bypassed</span>
                     </div>
                 </div>

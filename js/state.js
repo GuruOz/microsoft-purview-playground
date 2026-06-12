@@ -1,5 +1,11 @@
 window.STORAGE_KEY = 'dlp_visualizer_state';
 
+window.escapeHtml = function(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str ?? '')));
+    return div.innerHTML;
+};
+
 // Shared Global Memory Structures
 window.policies = [];
 window.variables = [];
@@ -290,10 +296,15 @@ if (!window.showToast) {
                 : 'bg-green-50 dark:bg-green-900/90 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
         }`;
         
-        toast.innerHTML = `
-            <span class="text-sm font-semibold">${message}</span>
-            <button onclick="this.parentElement.remove()" class="text-lg leading-none font-bold opacity-60 hover:opacity-100 focus:outline-none">&times;</button>
-        `;
+        const msgSpan = document.createElement('span');
+        msgSpan.className = 'text-sm font-semibold';
+        msgSpan.textContent = message;
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'text-lg leading-none font-bold opacity-60 hover:opacity-100 focus:outline-none';
+        closeBtn.innerHTML = '&times;';
+        closeBtn.onclick = () => toast.remove();
+        toast.appendChild(msgSpan);
+        toast.appendChild(closeBtn);
         document.body.appendChild(toast);
         
         setTimeout(() => {

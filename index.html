@@ -20,6 +20,31 @@
 </head>
 <body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 p-6 font-sans transition-colors duration-200">
     
+    <!-- Examples Modal -->
+    <div id="examplesModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 class="text-xl font-bold dark:text-white">Load Example Workspace</h2>
+                <button onclick="document.getElementById('examplesModal').classList.add('hidden')" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Select an example to load. This will replace your current workspace — export it first if you want to keep it.</p>
+            <div class="flex flex-col gap-3 overflow-y-auto">
+                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded hover:border-indigo-400 dark:hover:border-indigo-500 cursor-pointer bg-gray-50 dark:bg-gray-900 transition-colors" onclick="window.loadExample(0)">
+                    <div class="font-semibold text-gray-800 dark:text-gray-200 mb-1">Credit Card &amp; SSN Detection (Email)</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Blocks emails containing credit card or SSN data, with override allowed for business justification.</div>
+                </div>
+                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded hover:border-indigo-400 dark:hover:border-indigo-500 cursor-pointer bg-gray-50 dark:bg-gray-900 transition-colors" onclick="window.loadExample(1)">
+                    <div class="font-semibold text-gray-800 dark:text-gray-200 mb-1">Endpoint Sensitive File Block</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Blocks uploading or printing sensitive labelled files on endpoint devices.</div>
+                </div>
+                <div class="p-4 border border-gray-200 dark:border-gray-700 rounded hover:border-indigo-400 dark:hover:border-indigo-500 cursor-pointer bg-gray-50 dark:bg-gray-900 transition-colors" onclick="window.loadExample(2)">
+                    <div class="font-semibold text-gray-800 dark:text-gray-200 mb-1">Complex Nested Logic (Email + Endpoint)</div>
+                    <div class="text-sm text-gray-500 dark:text-gray-400">Demonstrates nested AND/OR/NOT logic across both Email and Endpoint workloads.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Data Import/Export Modal -->
     <div id="dataModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
         <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
@@ -78,6 +103,7 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
                         Share Link
                     </button>
+                    <button onclick="document.getElementById('examplesModal').classList.remove('hidden')" class="bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 px-4 py-2 rounded text-sm hover:bg-indigo-200 dark:hover:bg-indigo-900/60 font-semibold">Load Example</button>
                     <button onclick="toggleModal()" class="bg-gray-800 dark:bg-gray-700 text-white px-4 py-2 rounded text-sm hover:bg-gray-900 dark:hover:bg-gray-600 font-semibold shadow">Import / Export</button>
                 </div>
             </div>
@@ -209,6 +235,7 @@
     <script src="js/evaluator.js"></script>
     <script src="js/parser.js"></script>
     <script src="js/ui.js"></script>
+    <script src="js/examples.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
