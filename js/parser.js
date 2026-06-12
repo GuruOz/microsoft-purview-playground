@@ -225,13 +225,26 @@ window.parsePurviewJSON = function(rawText, currentVariables = []) {
 
 window.parseVisualizerJSON = function(rawText) {
     const data = JSON.parse(rawText);
-    if (data.policies && data.variables) {
-        return {
-            policies: data.policies,
-            variables: data.variables
-        };
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error("Expected a JSON object with 'policies' and 'variables' fields.");
     }
-    throw new Error("Invalid visualizer JSON format.");
+    if (!Array.isArray(data.policies)) {
+        throw new Error("Missing required field: 'policies' must be an array.");
+    }
+    if (!Array.isArray(data.variables)) {
+        throw new Error("Missing required field: 'variables' must be an array.");
+    }
+    data.policies.forEach((p, pi) => {
+        if (!p || typeof p !== 'object') throw new Error(`Item at policies[${pi}] must be an object.`);
+        if (!p.name || typeof p.name !== 'string') throw new Error(`Policy at index ${pi} is missing a 'name' field.`);
+        if (!Array.isArray(p.rules)) throw new Error(`Policy "${p.name}" is missing a 'rules' array.`);
+        p.rules.forEach((r, ri) => {
+            if (!r || typeof r !== 'object') throw new Error(`Item at rules[${ri}] in policy "${p.name}" must be an object.`);
+            if (!r.name || typeof r.name !== 'string') throw new Error(`Rule ${ri} in policy "${p.name}" is missing a 'name' field.`);
+            if (!Array.isArray(r.tokens)) throw new Error(`Rule "${r.name}" in policy "${p.name}" is missing a 'tokens' array.`);
+        });
+    });
+    return { policies: data.policies, variables: data.variables };
 };
 
 window.serializeVisualizerJSON = function(policies, variables) {

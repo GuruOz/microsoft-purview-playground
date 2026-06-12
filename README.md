@@ -1,21 +1,114 @@
 # Purview DLP Logic Visualizer
 
-The **Purview DLP Logic Visualizer** is an interactive web application designed to help administrators and security engineers build, visualize, test, summarize, and share complex Data Loss Prevention (DLP) logic for Microsoft Purview.
+An interactive browser tool for building, visualizing, and testing Microsoft Purview Data Loss Prevention policy logic — without touching a live tenant.
 
-## 🚀 Quick Start
-1. **Rule Builder:** Click **+ New Policy**, add conditions from the right sidebar, and drag operators (`AND`, `OR`, `NOT`) into the Drop Zone to build your visual logic.
-2. **Simulate:** Go to the **Simulator Tab**, check specific variables, and click **Run Simulation** to see a live evaluation trace of your logic.
-3. **Summarize & Export:** Go to the **Rule Summary Tab** to see all rules translated into plain English and export them to a clean PDF.
-4. **Share:** Click **Share Link** to instantly generate a URL with your exact policies to send to colleagues.
+## What is this?
 
----
+Microsoft Purview DLP policies can contain deeply nested AND/OR/NOT logic across multiple workloads (Exchange, SharePoint, Endpoint, and more). Understanding exactly when a rule will fire — or why it is not firing — is difficult from the Compliance portal alone.
 
-## 🌟 Key Features
+This tool gives Purview engineers a visual rule builder where they can compose conditions using boolean operators, evaluate them against simulated events, inspect a full truth table, and generate a plain-English explanation of what each rule does. The entire thing runs in the browser with no server required; you can share a workspace with a colleague via a single URL.
 
-*   **Drag-and-Drop Logic Builder:** Build complex nested logic using visual blocks and operators (`AND`, `OR`, `NOT`, brackets).
-*   **Live Truth Table & Simulator:** Automatically evaluates rule logic combinations and simulates real-world email/endpoint scenarios.
-*   **Natural Language Explanations (NEW!):** Instantly translates visual logic blocks into readable English. Supports static formats or advanced dynamic AI summaries (OpenAI, Gemini, Claude, DeepSeek) with secure local caching.
-*   **Rule Summary & PDF Export (NEW!):** A dedicated view listing all policies and natural language rule descriptions. Select rules to export as a cleanly paginated, highlightable native PDF.
-*   **Live Debug Logger (NEW!):** Track internal application states, API fetch metrics, and errors in a live debug log viewer built directly into the Settings tab.
-*   **Import / Export:** Save your workspace locally or import raw Purview PowerShell JSON to automatically rebuild the logic visually.
-*   **Cross-tab Sync & Dark Mode:** Edits instantly sync across open tabs, fully supported by a robust persistent dark mode theme.
+## Features
+
+- **Visual rule builder** — drag-and-drop conditions onto a canvas and connect them with AND, OR, NOT, and AND NOT operators
+- **Boolean logic evaluator** — evaluates infix token expressions (converted to postfix internally) with correct operator precedence across nested groups
+- **Truth table** — exhaustively enumerates all condition combinations and shows which trigger the rule
+- **Event simulator** — set individual condition values to true/false and immediately see whether each rule fires and which actions are triggered (Monitor, Notify, Override, Block)
+- **Conflict detector** — automatically flags logical contradictions (e.g. a condition AND NOT itself) in a rule's token expression
+- **Natural language explanation** — generates a plain-English summary of each rule; supports three modes: two built-in static templates, plus AI-generated explanations via OpenAI, Anthropic, Google Gemini, or DeepSeek
+- **Rule summary page** — cross-policy view of all rules with selectable export targets
+- **PDF export** — exports the current rule summary to a PDF for documentation or review
+- **URL sharing** — serializes the entire workspace state into the URL so you can share an exact configuration with a link
+- **PowerShell JSON import** — paste the JSON output of `Get-DlpComplianceRule` (from the Security & Compliance PowerShell module) to reverse-engineer an existing policy into the visual builder
+- **PowerShell JSON export** — generate a JSON payload compatible with `New-DlpComplianceRule` / `Set-DlpComplianceRule`
+- **Dark mode** — full light/dark theme toggle, persisted per browser
+- **No build step** — plain HTML, CSS (Tailwind via CDN), and vanilla JavaScript; open `index.html` and it works
+
+## Quick Start
+
+1. **Open the tool** — visit [https://guruoz.github.io/purview-dlp-logic-visualiser/](https://guruoz.github.io/purview-dlp-logic-visualiser/)
+2. **Build a rule** — drag a condition from the left-hand panel onto the canvas, then add AND/OR/NOT operators to compose the logic; or click "Load Example" to start from a pre-built scenario
+3. **Run the simulator** — navigate to the **Simulator** tab, toggle conditions on or off, and observe which rules fire and what actions are applied
+
+## Usage
+
+### Building Rules
+
+Open `index.html` (the Rule Builder). Each policy can contain multiple rules. Within a rule:
+
+- Drag condition tiles from the condition palette on the left onto the rule canvas
+- Use the operator buttons (AND, OR, NOT, AND NOT, parentheses) to connect conditions
+- Rules are evaluated left-to-right with standard boolean precedence: NOT > AND > OR
+- Nested groups can be created with parentheses by dragging the `(` and `)` tokens
+- The conflict detector will warn you inline if an expression contains a logical contradiction
+
+### Running the Simulator
+
+Navigate to the **Simulator** tab (`simulator.html`). The simulator reads the current workspace state (shared via `localStorage`).
+
+- Each condition in each rule is listed with a true/false toggle
+- After toggling, click **Run Simulation** to evaluate all rules simultaneously
+- Results show per-rule: matched (yes/no), applicable actions, and which conditions contributed
+
+### Importing from Purview
+
+1. Export a rule from PowerShell:
+   ```powershell
+   Get-DlpComplianceRule -Identity "Your Rule Name" | ConvertTo-Json -Depth 20
+   ```
+2. In the Rule Builder, click **Import / Export**, paste the JSON into the text area, and click **Import Purview PowerShell JSON**
+3. The parser maps PowerShell property names to the visualizer's condition vocabulary and reconstructs the full boolean expression
+
+### Exporting to PowerShell
+
+1. Build or import your policy in the Rule Builder
+2. Click **Import / Export** and then **Export to Purview JSON**
+3. Copy the generated JSON and use it as the `-AdvancedRule` parameter value with `New-DlpComplianceRule` or `Set-DlpComplianceRule`
+
+## Known Limitations
+
+> **Important:** This tool models the logical structure of DLP policy rules, not the full Microsoft Purview enforcement engine. Simulation results are indicative only and should not be treated as authoritative.
+>
+> Factors outside this tool's scope include: policy-level settings (priority, scoped locations, adaptive protection integration), SIT (Sensitive Information Type) confidence levels and instance counts, DLP enforcement modes (Audit, Warn, Block), transport rule interactions, and tenant-specific configuration. Always validate policy behaviour in a test tenant before production deployment.
+
+## Development
+
+The project uses [Vitest](https://vitest.dev/) for unit tests and [ESLint](https://eslint.org/) for linting. Node.js is only required for the development toolchain; the app itself has no runtime dependencies.
+
+```bash
+# Install dev dependencies
+npm install
+
+# Run the test suite
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Lint the JavaScript source
+npm run lint
+```
+
+Tests live in the `tests/` directory and cover the evaluator, parser, state management, and conflict detector.
+
+To run the app locally, open `index.html` directly in a browser — no local server is required for basic use. If you need `localStorage` sharing between pages to work reliably across all browsers, serve the files from a local HTTP server:
+
+```bash
+npx serve .
+```
+
+## Contributing
+
+1. Fork the repository on GitHub: [https://github.com/GuruOz/Purview-DLP-Logic-Visualiser](https://github.com/GuruOz/Purview-DLP-Logic-Visualiser)
+2. Create a feature branch from `main`:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. Make your changes, add or update tests as appropriate, and verify `npm test` and `npm run lint` pass cleanly
+4. Open a pull request against `main` with a clear description of the change and the problem it solves
+
+Bug reports and feature requests are welcome via [GitHub Issues](https://github.com/GuruOz/Purview-DLP-Logic-Visualiser/issues).
+
+## License
+
+MIT

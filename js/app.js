@@ -66,6 +66,9 @@ function registerEventHandlers() {
         }
         
         // Condition Pool Actions
+        else if (action === 'add-to-rule') {
+            addTokenFromClick('variable', target.dataset.val);
+        }
         else if (action === 'edit-pool') {
             const index = parseInt(target.dataset.index);
             editPoolCondition(index);
@@ -733,6 +736,8 @@ function addVariableFromUI() {
     let finalVar = baseVal;
     if (config.requiresProp) {
         if (!propVal) return showToast("Property value required.");
+        if (/<[^>]*>/.test(propVal)) return showToast("Property value cannot contain HTML tags.");
+        if (propVal.length > 500) return showToast("Property value is too long (max 500 characters).");
         finalVar += `: ${propVal}`;
     }
 

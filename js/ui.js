@@ -88,8 +88,8 @@ function renderPolicies() {
             <div class="flex justify-between items-center mb-4">
                 <div class="flex items-center gap-3">
                     <div class="flex flex-col">
-                        <button data-action="move-policy-up" data-pindex="${pIndex}" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
-                        <button data-action="move-policy-down" data-pindex="${pIndex}" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === policies.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
+                        <button data-action="move-policy-up" data-pindex="${pIndex}" aria-label="Move policy up" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
+                        <button data-action="move-policy-down" data-pindex="${pIndex}" aria-label="Move policy down" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === policies.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                     </div>
                     <h2 class="font-bold text-lg outline-none focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="policy" data-pindex="${pIndex}">${window.escapeHtml(policy.name)}</h2>
                     <span class="text-xs bg-gray-300 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 font-mono">Priority ${pIndex}</span>
@@ -140,8 +140,8 @@ function renderPolicies() {
                 <div class="flex justify-between items-center mb-2">
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="flex flex-col">
-                            <button data-action="move-rule-up" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
-                            <button data-action="move-rule-down" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === policy.rules.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
+                            <button data-action="move-rule-up" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule up" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
+                            <button data-action="move-rule-down" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule down" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === policy.rules.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                         </div>
                         <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
                         <span class="text-xs font-mono ${isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-gray-400'}">Priority ${rIndex} ${isActive ? '(Editing)' : ''}</span>
@@ -282,6 +282,7 @@ function renderPolicies() {
                                 removePropBtn.innerHTML = '&times;';
                                 removePropBtn.className = 'font-bold opacity-60 hover:opacity-100 text-sm leading-none ml-1 outline-none';
                                 removePropBtn.title = 'Remove property';
+                                removePropBtn.setAttribute('aria-label', 'Remove property');
                                 removePropBtn.onclick = (e) => {
                                     e.stopPropagation();
                                     window.removeProperty(pIndex, rIndex, token.originalIndex, propIdx);
@@ -335,6 +336,7 @@ function renderPolicies() {
                         
                         const delBtn = document.createElement('button');
                         delBtn.innerHTML = '&times;';
+                        delBtn.setAttribute('aria-label', `Remove ${token.type === 'variable' ? token.val : token.val + ' operator'}`);
                         delBtn.className = 'ml-2 font-bold opacity-60 hover:opacity-100 px-1 text-lg leading-none outline-none';
                         delBtn.dataset.action = 'delete-token';
                         delBtn.dataset.pindex = pIndex;
@@ -480,10 +482,19 @@ function renderVariables() {
         const btnGroup = document.createElement('div');
         btnGroup.className = 'flex items-stretch shrink-0';
 
+        const addBtn = document.createElement('button');
+        addBtn.className = 'px-3 py-2 hover:bg-green-100 dark:hover:bg-green-900/30 border-l border-blue-200 dark:border-gray-600 text-green-700 dark:text-green-400 transition-colors text-xs font-bold';
+        addBtn.textContent = '+ Add';
+        addBtn.title = "Add to active rule";
+        addBtn.setAttribute('aria-label', `Add condition to rule: ${v}`);
+        addBtn.dataset.action = 'add-to-rule';
+        addBtn.dataset.val = v;
+
         const editBtn = document.createElement('button');
         editBtn.className = 'px-3 py-2 hover:bg-blue-200 dark:hover:bg-gray-700 font-bold border-l border-blue-200 dark:border-gray-600 text-blue-600 dark:text-blue-400 transition-colors';
         editBtn.innerHTML = '&#9998;';
         editBtn.title = "Edit condition";
+        editBtn.setAttribute('aria-label', `Edit condition: ${v}`);
         editBtn.dataset.action = 'edit-pool';
         editBtn.dataset.index = idx;
 
@@ -491,9 +502,11 @@ function renderVariables() {
         delBtn.className = 'px-3 py-2 hover:bg-red-100 dark:hover:bg-gray-700 font-bold border-l border-blue-200 dark:border-gray-600 text-gray-400 dark:text-gray-500 hover:text-red-700 dark:hover:text-red-400 transition-colors';
         delBtn.innerHTML = '&times;';
         delBtn.title = "Remove from pool";
+        delBtn.setAttribute('aria-label', `Remove condition: ${v}`);
         delBtn.dataset.action = 'delete-pool';
         delBtn.dataset.index = idx;
 
+        btnGroup.appendChild(addBtn);
         btnGroup.appendChild(editBtn);
         btnGroup.appendChild(delBtn);
 
@@ -628,10 +641,10 @@ function generateTable() {
 
     let headHtml = '<tr>';
     uniqueVars.forEach(v => {
-        headHtml += `<th class="border border-gray-300 dark:border-gray-600 p-2 text-xs font-semibold whitespace-normal break-words min-w-[100px] max-w-[150px] text-center bg-gray-50 dark:bg-gray-800 align-top">${window.escapeHtml(v)}</th>`;
+        headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 text-xs font-semibold whitespace-normal break-words min-w-[100px] max-w-[150px] text-center bg-gray-50 dark:bg-gray-800 align-top">${window.escapeHtml(v)}</th>`;
     });
-    headHtml += `<th class="border border-gray-300 dark:border-gray-600 p-2 bg-blue-50 dark:bg-gray-800 w-full text-xs font-semibold align-top text-center">Evaluation Trace</th>`;
-    headHtml += `<th class="border border-gray-300 dark:border-gray-600 p-2 bg-gray-800 dark:bg-gray-600 text-white font-bold text-center w-20 text-xs align-top">FINAL</th></tr>`;
+    headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 bg-blue-50 dark:bg-gray-800 w-full text-xs font-semibold align-top text-center">Evaluation Trace</th>`;
+    headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 bg-gray-800 dark:bg-gray-600 text-white font-bold text-center w-20 text-xs align-top">FINAL</th></tr>`;
     thead.innerHTML = headHtml;
 
     let bodyHtml = '';
