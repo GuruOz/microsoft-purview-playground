@@ -25,6 +25,11 @@ const browserGlobals = {
     atob: 'readonly',
     encodeURIComponent: 'readonly',
     decodeURIComponent: 'readonly',
+    TextEncoder: 'readonly',
+    TextDecoder: 'readonly',
+    CompressionStream: 'readonly',
+    DecompressionStream: 'readonly',
+    Response: 'readonly',
 };
 
 // Functions set on window.* in one script and called bare (without window. prefix) in another.
@@ -49,6 +54,8 @@ const appGlobals = {
     saveState: 'readonly',
     loadState: 'readonly',
     shareState: 'readonly',
+    _compressStateStr: 'readonly',
+    _decompressStateStr: 'readonly',
     undo: 'readonly',
     redo: 'readonly',
     jumpToHistory: 'readonly',
