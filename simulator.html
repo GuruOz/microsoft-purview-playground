@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.anthropic.com https://api.deepseek.com; img-src 'self' data:; font-src 'self' data:;">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="manifest" href="manifest.json">
     <title>DLP Event Simulator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -128,11 +130,17 @@
         };
     </script>
     <!-- Boot module -->
+    <script src="js/version.js"></script>
     <script src="js/logger.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/state.js"></script>
     <script src="js/evaluator.js"></script>
     <script src="js/simulator-ui.js"></script>
     <script src="js/simulator-app.js"></script>
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+    <footer class="text-center text-xs text-gray-400 dark:text-gray-600 py-3" role="contentinfo">
+        Purview DLP Logic Visualizer &mdash; <span id="appVersionFooter"></span>
+        <script>document.getElementById('appVersionFooter').textContent = 'v' + (window.APP_VERSION || '1.0.0');</script>
+    </footer>
 </body>
 </html>

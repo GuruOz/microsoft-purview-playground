@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.anthropic.com https://api.deepseek.com; img-src 'self' data:; font-src 'self' data:;">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="Build, visualize, and simulate Microsoft Purview DLP policy logic.">
+    <link rel="manifest" href="manifest.json">
     <title>DLP Logic Visualizer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -26,7 +29,7 @@
         <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-2xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                 <h2 class="text-xl font-bold dark:text-white">Load Example Workspace</h2>
-                <button onclick="document.getElementById('examplesModal').classList.add('hidden')" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
+                <button onclick="document.getElementById('examplesModal').classList.add('hidden')" aria-label="Close examples dialog" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
             </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Select an example to load. This will replace your current workspace — export it first if you want to keep it.</p>
             <div class="flex flex-col gap-3 overflow-y-auto">
@@ -51,7 +54,7 @@
         <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-lg w-full max-w-4xl max-h-[90vh] flex flex-col border border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold dark:text-white">Import / Export Data</h2>
-                <button onclick="toggleModal()" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
+                <button onclick="toggleModal()" aria-label="Close import/export dialog" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
             </div>
             <textarea id="jsonPayload" class="w-full flex-grow border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded p-4 font-mono text-xs focus:outline-none focus:border-blue-500 mb-4" placeholder='Paste JSON here...'></textarea>
             <div class="flex justify-between gap-4">
@@ -69,8 +72,8 @@
         </div>
     </div>
 
-    <div class="w-full mx-auto space-y-6">
-        
+    <main role="main" class="w-full mx-auto space-y-6">
+
         <!-- Header -->
         <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <div class="flex items-center gap-3">
@@ -218,7 +221,7 @@
                 </tbody>
             </table>
         </div>
-    </div>
+    </main>
 
     <!-- Theme Toggling support -->
     <script>
@@ -233,6 +236,7 @@
             }
         };
     </script>
+    <script src="js/version.js"></script>
     <script src="js/logger.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/state.js"></script>
@@ -243,5 +247,14 @@
     <script src="js/ui.js"></script>
     <script src="js/examples.js"></script>
     <script src="js/app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
+    <footer class="text-center text-xs text-gray-400 dark:text-gray-600 py-3" role="contentinfo">
+        Purview DLP Logic Visualizer &mdash; <span id="appVersionFooter"></span>
+        <script>document.getElementById('appVersionFooter').textContent = 'v' + (window.APP_VERSION || '1.0.0');</script>
+    </footer>
 </body>
 </html>

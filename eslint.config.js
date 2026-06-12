@@ -102,6 +102,8 @@ const appGlobals = {
     // conflict-detector.js
     detectRuleIssues: 'readonly',
     detectPolicyConflicts: 'readonly',
+    // version.js
+    APP_VERSION: 'readonly',
 };
 
 export default [

@@ -1,0 +1,66 @@
+const CACHE_NAME = 'dlp-visualizer-v1.0.0';
+
+const ASSETS = [
+    '/purview-dlp-logic-visualiser/',
+    '/purview-dlp-logic-visualiser/index.html',
+    '/purview-dlp-logic-visualiser/simulator.html',
+    '/purview-dlp-logic-visualiser/summary.html',
+    '/purview-dlp-logic-visualiser/settings.html',
+    '/purview-dlp-logic-visualiser/css/styles.css',
+    '/purview-dlp-logic-visualiser/js/version.js',
+    '/purview-dlp-logic-visualiser/js/logger.js',
+    '/purview-dlp-logic-visualiser/js/constants.js',
+    '/purview-dlp-logic-visualiser/js/state.js',
+    '/purview-dlp-logic-visualiser/js/nl-generator.js',
+    '/purview-dlp-logic-visualiser/js/evaluator.js',
+    '/purview-dlp-logic-visualiser/js/parser.js',
+    '/purview-dlp-logic-visualiser/js/conflict-detector.js',
+    '/purview-dlp-logic-visualiser/js/ui.js',
+    '/purview-dlp-logic-visualiser/js/examples.js',
+    '/purview-dlp-logic-visualiser/js/app.js',
+    '/purview-dlp-logic-visualiser/js/simulator-ui.js',
+    '/purview-dlp-logic-visualiser/js/summary-ui.js',
+    '/purview-dlp-logic-visualiser/js/settings-ui.js'
+];
+
+self.addEventListener('install', event => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    );
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(keys =>
+            Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+        )
+    );
+    self.clients.claim();
+});
+
+// Cache-first for local assets, network-first for AI API calls
+self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+
+    // Let AI API calls go straight to network — never cache them
+    const apiHosts = ['api.openai.com', 'generativelanguage.googleapis.com', 'api.anthropic.com', 'api.deepseek.com'];
+    if (apiHosts.includes(url.hostname)) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
+    // Cache-first for everything else
+    event.respondWith(
+        caches.match(event.request).then(cached => {
+            if (cached) return cached;
+            return fetch(event.request).then(response => {
+                if (response.ok && event.request.method === 'GET') {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+                }
+                return response;
+            });
+        })
+    );
+});
