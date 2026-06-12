@@ -26,7 +26,7 @@ async function renderSummary() {
         
         let pHeader = `
             <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                <h2 class="font-bold text-lg dark:text-white">${policy.name}</h2>
+                <h2 class="font-bold text-lg dark:text-white">${window.escapeHtml(policy.name)}</h2>
                 <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300">
                     <input type="checkbox" class="policy-select-all" data-pindex="${pIndex}"> Select All Rules
                 </label>
@@ -49,9 +49,9 @@ async function renderSummary() {
                 <div class="flex items-start gap-3">
                     <input type="checkbox" class="rule-checkbox mt-1" data-pindex="${pIndex}" data-rindex="${rIndex}">
                     <div class="flex-grow space-y-2">
-                        <h3 class="font-bold text-gray-800 dark:text-gray-200">${rule.name}</h3>
+                        <h3 class="font-bold text-gray-800 dark:text-gray-200">${window.escapeHtml(rule.name)}</h3>
                         <div class="text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                            ${rule.tokens.map(t => t.val).join(' ')}
+                            ${window.escapeHtml(rule.tokens.map(t => t.val).join(' '))}
                         </div>
                         <div class="text-sm font-medium text-indigo-700 dark:text-indigo-400 summary-text italic">
                             Generating explanation...
@@ -174,27 +174,27 @@ window.exportSelectedPDF = function() {
         const rule = policy.rules[rIdx];
         
         if (pIdx !== currentPolicyIndex) {
-            contentHtml += `<h2 class="print-policy-header" style="color: #1F2937; margin-top: 30px; border-bottom: 1px solid #D1D5DB; padding-bottom: 5px; margin-bottom: 15px;">Policy: ${policy.name}</h2>`;
+            contentHtml += `<h2 class="print-policy-header" style="color: #1F2937; margin-top: 30px; border-bottom: 1px solid #D1D5DB; padding-bottom: 5px; margin-bottom: 15px;">Policy: ${window.escapeHtml(policy.name)}</h2>`;
             currentPolicyIndex = pIdx;
         }
-        
+
         const ruleTokensText = rule.tokens.map(t => t.val).join(' ');
-        
+
         contentHtml += `
             <div class="print-rule" style="margin-bottom: 20px; padding: 15px; border: 1px solid #E5E7EB; border-radius: 5px; background-color: #F9FAFB;">
-                <h3 style="color: #374151; margin-top: 0; margin-bottom: 10px;">Rule: ${rule.name}</h3>
-                
+                <h3 style="color: #374151; margin-top: 0; margin-bottom: 10px;">Rule: ${window.escapeHtml(rule.name)}</h3>
+
                 <div style="margin-bottom: 10px;">
                     <strong style="font-size: 14px; color: #4B5563;">Conditions (Raw):</strong>
                     <div style="font-family: monospace; font-size: 12px; background-color: #F3F4F6; padding: 8px; border-radius: 4px; margin-top: 5px; word-break: break-all;">
-                        ${ruleTokensText || 'No conditions configured.'}
+                        ${window.escapeHtml(ruleTokensText || 'No conditions configured.')}
                     </div>
                 </div>
-                
+
                 <div>
                     <strong style="font-size: 14px; color: #4B5563;">Description:</strong>
                     <p style="font-size: 14px; color: #111827; margin-top: 5px; line-height: 1.5;">
-                        ${rule.cachedSummaryText || 'Description unavailable.'}
+                        ${window.escapeHtml(rule.cachedSummaryText || 'Description unavailable.')}
                     </p>
                 </div>
             </div>

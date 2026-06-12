@@ -50,10 +50,15 @@ function showSettingsToast(message, type = 'error') {
             : 'bg-green-50 dark:bg-green-900/90 border-green-200 dark:border-green-800 text-green-800 dark:text-green-200'
     }`;
     
-    toast.innerHTML = `
-        <span class="text-sm font-semibold">${message}</span>
-        <button onclick="this.parentElement.remove()" class="text-lg leading-none font-bold opacity-60 hover:opacity-100 focus:outline-none">&times;</button>
-    `;
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'text-sm font-semibold';
+    msgSpan.textContent = message;
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'text-lg leading-none font-bold opacity-60 hover:opacity-100 focus:outline-none';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.onclick = () => toast.remove();
+    toast.appendChild(msgSpan);
+    toast.appendChild(closeBtn);
     document.body.appendChild(toast);
     
     setTimeout(() => {
@@ -72,19 +77,26 @@ window.refreshLogViewer = function() {
         return;
     }
     
-    let content = '';
+    viewer.innerHTML = '';
     window.dlpLogs.forEach(l => {
         let colorClass = 'text-gray-800 dark:text-gray-300';
         if (l.level === 'ERROR') colorClass = 'text-red-600 dark:text-red-400 font-bold';
         if (l.level === 'WARN') colorClass = 'text-yellow-600 dark:text-yellow-400 font-bold';
-        
-        content += `<span class="${colorClass}">[${l.timestamp}] [${l.level}] [${l.component}] ${l.message}</span>\n`;
+
+        const line = document.createElement('span');
+        line.className = colorClass;
+        line.textContent = `[${l.timestamp}] [${l.level}] [${l.component}] ${l.message}`;
+        viewer.appendChild(line);
+        viewer.appendChild(document.createTextNode('\n'));
+
         if (l.data) {
-            content += `<span class="text-gray-500 dark:text-gray-500 ml-4">${JSON.stringify(l.data, null, 2)}</span>\n`;
+            const dataLine = document.createElement('span');
+            dataLine.className = 'text-gray-500 dark:text-gray-500 ml-4';
+            dataLine.textContent = JSON.stringify(l.data, null, 2);
+            viewer.appendChild(dataLine);
+            viewer.appendChild(document.createTextNode('\n'));
         }
     });
-    
-    viewer.innerHTML = content;
     viewer.scrollTop = viewer.scrollHeight;
 };
 

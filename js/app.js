@@ -829,7 +829,7 @@ window.showNaturalLanguageExplanation = async function(pIndex, rIndex) {
                 <button onclick="this.closest('#nlExplanationModal').remove()" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
             </div>
             <div class="flex-grow overflow-y-auto mb-4">
-                <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-2">${rule.name}</h3>
+                <h3 class="font-semibold text-gray-800 dark:text-gray-200 mb-2">${window.escapeHtml(rule.name)}</h3>
                 <div id="nlLoadingState" class="text-indigo-600 dark:text-indigo-400 italic">Generating explanation...</div>
                 <p id="nlExplanationText" class="hidden text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 font-medium whitespace-pre-wrap"></p>
             </div>
