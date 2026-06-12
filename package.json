@@ -1,0 +1,19 @@
+{
+  "name": "purview-dlp-logic-visualiser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Interactive DLP policy builder and visualizer for Microsoft Purview",
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint js/"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.0",
+    "eslint": "^9.11.0",
+    "jsdom": "^25.0.0",
+    "prettier": "^3.3.3",
+    "vitest": "^2.1.1"
+  }
+}

@@ -1,0 +1,120 @@
+import js from '@eslint/js';
+
+// Browser + app globals shared across all JS files
+const browserGlobals = {
+    window: 'readonly',
+    document: 'readonly',
+    localStorage: 'readonly',
+    sessionStorage: 'readonly',
+    navigator: 'readonly',
+    fetch: 'readonly',
+    setTimeout: 'readonly',
+    clearTimeout: 'readonly',
+    setInterval: 'readonly',
+    clearInterval: 'readonly',
+    console: 'readonly',
+    alert: 'readonly',
+    confirm: 'readonly',
+    prompt: 'readonly',
+    URL: 'readonly',
+    URLSearchParams: 'readonly',
+    Blob: 'readonly',
+    CSS: 'readonly',
+    Event: 'readonly',
+    btoa: 'readonly',
+    atob: 'readonly',
+    encodeURIComponent: 'readonly',
+    decodeURIComponent: 'readonly',
+};
+
+// Functions set on window.* in one script and called bare (without window. prefix) in another.
+// This is the established cross-file communication pattern for this vanilla JS codebase.
+const appGlobals = {
+    purviewConditions: 'readonly',
+    policies: 'readonly',
+    variables: 'readonly',
+    activePolicyIndex: 'readonly',
+    activeRuleIndex: 'readonly',
+    simulatorState: 'readonly',
+    historyTimeline: 'readonly',
+    historyPointer: 'readonly',
+    // evaluator.js
+    getPrecedence: 'readonly',
+    infixToPostfix: 'readonly',
+    evaluatePostfix: 'readonly',
+    generateEvaluationTrace: 'readonly',
+    generateDetailedEvaluationHtml: 'readonly',
+    // state.js
+    generateId: 'readonly',
+    saveState: 'readonly',
+    loadState: 'readonly',
+    shareState: 'readonly',
+    undo: 'readonly',
+    redo: 'readonly',
+    jumpToHistory: 'readonly',
+    setPolicies: 'readonly',
+    setVariables: 'readonly',
+    setActivePolicyIndex: 'readonly',
+    setActiveRuleIndex: 'readonly',
+    escapeHtml: 'readonly',
+    // ui.js
+    showToast: 'readonly',
+    renderPolicies: 'readonly',
+    renderVariables: 'readonly',
+    renderHistoryUI: 'readonly',
+    generateTable: 'readonly',
+    renderContextBadge: 'readonly',
+    getConditionContext: 'readonly',
+    populateDropdown: 'readonly',
+    showDropdown: 'readonly',
+    filterDropdown: 'readonly',
+    togglePropertyInput: 'readonly',
+    filterConditionPool: 'readonly',
+    getActiveDropdownIndex: 'readonly',
+    setActiveDropdownIndex: 'readonly',
+    updateDropdownHighlight: 'readonly',
+    chunkTokensIntoLines: 'readonly',
+    // app.js
+    showNaturalLanguageExplanation: 'readonly',
+    addTokenFromClick: 'readonly',
+    addPolicy: 'readonly',
+    toggleModal: 'readonly',
+    importPurviewJSON: 'readonly',
+    importVisualizerJSON: 'readonly',
+    exportVisualizerJSON: 'readonly',
+    // simulator-ui.js
+    runSimulation: 'readonly',
+    updateSimulatorVariables: 'readonly',
+    filterSimulatorVariables: 'readonly',
+    // parser.js
+    parsePurviewJSON: 'readonly',
+    parseVisualizerJSON: 'readonly',
+    serializeVisualizerJSON: 'readonly',
+    // logger.js
+    logEvent: 'readonly',
+    dlpLogs: 'readonly',
+    downloadLogs: 'readonly',
+    // observer pattern
+    subscribe: 'readonly',
+    notifyObservers: 'readonly',
+};
+
+export default [
+    {
+        ...js.configs.recommended,
+        files: ['js/**/*.js'],
+        languageOptions: {
+            ecmaVersion: 2022,
+            sourceType: 'script',
+            globals: { ...browserGlobals, ...appGlobals }
+        },
+        rules: {
+            'no-unused-vars': ['warn', { varsIgnorePattern: '^_', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+            'no-undef': 'warn',
+            'eqeqeq': ['warn', 'always', { null: 'ignore' }],
+            'no-console': 'off',
+            'no-prototype-builtins': 'off',
+            'no-var': 'warn',
+        }
+    }
+];

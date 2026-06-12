@@ -5,7 +5,7 @@ try {
     if (storedLogs) {
         window.dlpLogs = JSON.parse(storedLogs);
     }
-} catch (e) {}
+} catch (_e) {}
 
 window.getObjectDiff = function(oldObj, newObj, path = "root") {
     let diffs = [];
@@ -46,7 +46,7 @@ window.logEvent = function(level, component, message, data = null) {
     
     try {
         sessionStorage.setItem('dlp_debug_logs', JSON.stringify(window.dlpLogs));
-    } catch(e) {}
+    } catch(_e) {}
     
     // Also output to console
     let consoleMsg = `[${logEntry.timestamp}] [${logEntry.level}] [${logEntry.component}] ${logEntry.message}`;

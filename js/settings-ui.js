@@ -104,7 +104,7 @@ window.clearDebugLogs = function() {
     window.dlpLogs = [];
     try {
         sessionStorage.removeItem('dlp_debug_logs');
-    } catch(e) {}
+    } catch(_e) {}
     window.refreshLogViewer();
     showSettingsToast("Debug logs cleared.", "success");
 };

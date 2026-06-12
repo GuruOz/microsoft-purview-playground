@@ -169,7 +169,7 @@ window.generateNaturalLanguage = async function(rule) {
     try {
         const storedCache = localStorage.getItem('dlp_nl_cache');
         if (storedCache) nlCache = JSON.parse(storedCache);
-    } catch(e) {}
+    } catch(_e) {}
 
     if (nlCache[cacheKey]) {
         return nlCache[cacheKey];
@@ -186,7 +186,7 @@ window.generateNaturalLanguage = async function(rule) {
     nlCache[cacheKey] = text;
     try {
         localStorage.setItem('dlp_nl_cache', JSON.stringify(nlCache));
-    } catch(e) {}
+    } catch(_e) {}
     
     return text;
 };
