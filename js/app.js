@@ -613,6 +613,16 @@ window.initApp = function() {
     window.exportVisualizerJSON = function() {
         const payload = serializeVisualizerJSON(policies, variables);
         document.getElementById('jsonPayload').value = payload;
+        document.getElementById('modalInfo').classList.add('hidden');
+    };
+
+    window.exportToPurviewJSON = function() {
+        const payload = serializePurviewJSON(policies);
+        document.getElementById('jsonPayload').value = payload;
+        const info = document.getElementById('modalInfo');
+        info.textContent = 'Purview PowerShell JSON ready. Copy and use with New-DlpComplianceRule in your PowerShell script.';
+        info.classList.remove('hidden');
+        document.getElementById('modalError').classList.add('hidden');
     };
 
     window.addTokenFromClick = function(type, val) {

@@ -107,30 +107,46 @@ function renderPolicies() {
         const rulesContainer = document.createElement('div');
         rulesContainer.className = 'space-y-4';
 
+        const policyConflicts = (typeof window.detectPolicyConflicts === 'function')
+            ? window.detectPolicyConflicts(policy.rules)
+            : {};
+
         policy.rules.forEach((rule, rIndex) => {
             const isActive = (pIndex === activePolicyIndex && rIndex === activeRuleIndex);
             const isRuleEnabled = policy.enabled && rule.enabled;
-            
+            const ruleIssues = policyConflicts[rIndex] || [];
+
             const rDiv = document.createElement('div');
             let rClass = 'p-4 rounded shadow-sm border transition-all cursor-pointer ';
             if (isActive) rClass += 'bg-blue-50 dark:bg-gray-700 border-blue-400 ring-1 ring-blue-400 ';
             else if (!isRuleEnabled) rClass += 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60 ';
             else rClass += 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 ';
-            
+
             rDiv.className = rClass;
             rDiv.dataset.pindex = pIndex;
             rDiv.dataset.rindex = rIndex;
-            
+
+            let warningBadgesHtml = '';
+            ruleIssues.forEach(issue => {
+                if (issue.type === 'unreachable') {
+                    const escaped = issue.vars.map(v => window.escapeHtml(v)).join(', ');
+                    warningBadgesHtml += `<span class="text-[10px] bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700 px-1.5 py-0.5 rounded font-bold" title="Condition appears both positively and negated: ${escaped}">&#9888; Unreachable</span>`;
+                } else if (issue.type === 'duplicate') {
+                    warningBadgesHtml += `<span class="text-[10px] bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700 px-1.5 py-0.5 rounded font-bold" title="Identical logic to Rule ${issue.duplicateOf}">&#9888; Duplicate of Rule ${issue.duplicateOf}</span>`;
+                }
+            });
+
             let rHeader = `
                 <div class="flex justify-between items-center mb-2">
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 flex-wrap">
                         <div class="flex flex-col">
                             <button data-action="move-rule-up" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                             <button data-action="move-rule-down" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === policy.rules.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                         </div>
                         <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
                         <span class="text-xs font-mono ${isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-gray-400'}">Priority ${rIndex} ${isActive ? '(Editing)' : ''}</span>
-                        
+                        ${warningBadgesHtml}
+
                         <div class="flex gap-3 ml-2 border-l border-gray-300 dark:border-gray-600 pl-3" onclick="event.stopPropagation()">
                             <label class="flex items-center gap-1 text-xs font-semibold cursor-pointer dark:text-gray-300"><input type="checkbox" data-action="toggle-rule" data-pindex="${pIndex}" data-rindex="${rIndex}" ${rule.enabled ? 'checked' : ''}> Enabled</label>
                             <label class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer"><input type="checkbox" data-action="toggle-workload" data-workload="email" data-pindex="${pIndex}" data-rindex="${rIndex}" ${rule.workloads.email ? 'checked' : ''}> Email</label>

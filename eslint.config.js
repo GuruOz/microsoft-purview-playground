@@ -82,6 +82,7 @@ const appGlobals = {
     importPurviewJSON: 'readonly',
     importVisualizerJSON: 'readonly',
     exportVisualizerJSON: 'readonly',
+    exportToPurviewJSON: 'readonly',
     // simulator-ui.js
     runSimulation: 'readonly',
     updateSimulatorVariables: 'readonly',
@@ -90,6 +91,7 @@ const appGlobals = {
     parsePurviewJSON: 'readonly',
     parseVisualizerJSON: 'readonly',
     serializeVisualizerJSON: 'readonly',
+    serializePurviewJSON: 'readonly',
     // logger.js
     logEvent: 'readonly',
     dlpLogs: 'readonly',
@@ -97,6 +99,9 @@ const appGlobals = {
     // observer pattern
     subscribe: 'readonly',
     notifyObservers: 'readonly',
+    // conflict-detector.js
+    detectRuleIssues: 'readonly',
+    detectPolicyConflicts: 'readonly',
 };
 
 export default [
