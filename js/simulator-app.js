@@ -19,6 +19,25 @@ function registerEventHandlers() {
         simSearch.oninput = filterSimulatorVariables;
     }
 
+    const sortBtn = document.getElementById('simSortBtn');
+    if (sortBtn) {
+        sortBtn.onclick = () => {
+            simSortAlpha = !simSortAlpha;
+            sortBtn.classList.toggle('bg-indigo-100', simSortAlpha);
+            sortBtn.classList.toggle('dark:bg-indigo-900/40', simSortAlpha);
+            sortBtn.classList.toggle('text-indigo-700', simSortAlpha);
+            sortBtn.classList.toggle('dark:text-indigo-300', simSortAlpha);
+            sortBtn.classList.toggle('border-indigo-400', simSortAlpha);
+            updateSimulatorVariables();
+        };
+    }
+
+    const varsContainer = document.getElementById('simulatorVariables');
+    if (varsContainer) {
+        varsContainer.addEventListener('scroll', updateScrollHint);
+        new ResizeObserver(updateScrollHint).observe(varsContainer);
+    }
+
     const channelSelect = document.getElementById('simChannel');
     if (channelSelect) {
         channelSelect.onchange = () => {

@@ -97,6 +97,9 @@ const appGlobals = {
     updateSimulatorVariables: 'readonly',
     filterSimulatorVariables: 'readonly',
     resetSimulatorInputs: 'readonly',
+    updateScrollHint: 'readonly',
+    simSortAlpha: 'writable',
+    ResizeObserver: 'readonly',
     // regex-builder.js
     callAIChat: 'readonly',
     extractRegexFromReply: 'readonly',

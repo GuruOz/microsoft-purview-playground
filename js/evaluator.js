@@ -136,33 +136,44 @@ window.expandTokenSimVars = function(token) {
 };
 
 // Find simulator input values that make the rule expression evaluate to true.
-// Returns { simVarKey: boolean } using the fewest true values possible,
-// or null if the rule can never match (or has too many variables to solve).
+// Works at the TOKEN level (not expanded-key level) so a condition with many
+// comma-separated values (e.g. 15 file extensions) counts as 1 token, not 15.
+// For a satisfying token-level assignment: token=true → first expanded key true,
+// rest false; token=false → all expanded keys false.
+// Returns { simVarKey: boolean } or null if unsatisfiable / too many unique tokens.
 window.findTriggerAssignment = function(tokens) {
-    const varSet = new Set();
+    const uniqueTokens = [];
+    const seenKeys = new Set();
     tokens.forEach(t => {
-        if (t.type === 'variable') window.expandTokenSimVars(t).forEach(k => varSet.add(k));
+        if (t.type !== 'variable') return;
+        const key = `${t.val}||${t.targetContext || 'Both'}`;
+        if (!seenKeys.has(key)) { seenKeys.add(key); uniqueTokens.push(t); }
     });
-    const vars = Array.from(varSet);
-    if (vars.length === 0 || vars.length > 16) return null;
+
+    if (uniqueTokens.length === 0 || uniqueTokens.length > 22) return null;
 
     const postfix = window.infixToPostfix(tokens);
-    const popcount = n => {
-        let c = 0;
-        while (n) { c += n & 1; n >>= 1; }
-        return c;
-    };
-    const candidates = [];
-    for (let i = 0; i < (1 << vars.length); i++) candidates.push(i);
-    candidates.sort((a, b) => popcount(a) - popcount(b));
+    const popcount = n => { let c = 0; while (n) { c += n & 1; n >>= 1; } return c; };
+    const n = uniqueTokens.length;
+    const indices = Array.from({ length: 1 << n }, (_, i) => i);
+    indices.sort((a, b) => popcount(a) - popcount(b));
 
-    for (const mask of candidates) {
+    for (const mask of indices) {
         const truthValues = {};
-        vars.forEach((v, idx) => { truthValues[v] = !!(mask & (1 << idx)); });
+        uniqueTokens.forEach((t, idx) => {
+            const isTrue = !!(mask & (1 << idx));
+            const keys = window.expandTokenSimVars(t);
+            if (isTrue) {
+                truthValues[keys[0]] = true;
+                keys.slice(1).forEach(k => { truthValues[k] = false; });
+            } else {
+                keys.forEach(k => { truthValues[k] = false; });
+            }
+        });
         try {
             if (window.evaluatePostfix(postfix, truthValues)) return truthValues;
         } catch (_e) {
-            return null; // malformed expression — nothing can trigger it
+            return null;
         }
     }
     return null;
