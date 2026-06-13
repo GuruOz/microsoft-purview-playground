@@ -394,123 +394,138 @@ function renderSimulatorUI(vars, channel) {
     renderSelectedConditions();
 }
 
-function evaluatePhase(parsedRules, ignoreServerConditions) {
-    let html = '<div class="flex flex-col items-center w-full space-y-3">';
-    let phaseActions = { monitor: false, notify: false, override: false, block: false };
-    let stoppedProcessing = false;
-    let matchedAny = false;
-    let overrodeBlock = false;
-    let failedOverrideBlock = false;
-    let straightBlock = false;
+function evaluatePhase(policiesList, ignoreServerConditions) {
+    const deferServerConditions = !ignoreServerConditions;
+    const channelEl = document.getElementById('simChannel');
+    const channel = channelEl ? channelEl.value : 'Email';
 
-    for (let i = 0; i < parsedRules.length; i++) {
-        let rule = parsedRules[i];
-        
-        if (stoppedProcessing) {
-            html += `
-                <div class="w-full max-w-2xl p-3 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 rounded shadow-sm opacity-60">
-                    <div class="flex justify-between items-center">
-                        <span class="font-semibold text-red-700 dark:text-red-400 opacity-60">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
-                        <span class="text-red-500 dark:text-red-500 font-bold text-[10px] uppercase tracking-wide">Skipped (Pass Halted)</span>
-                    </div>
-                </div>
-            `;
-            if (i < parsedRules.length - 1) html += `<div class="text-gray-300 dark:text-gray-700 text-xl leading-none font-bold">&#8595;</div>`;
-            continue;
-        }
+    // Call the decoupled evaluation logic
+    const evalResult = window.evaluatePolicyChain(policiesList, simulatorState, channel, {
+        deferServerConditions
+    });
 
-        let hasServerCondition = false;
-        if (!ignoreServerConditions) {
-            rule.tokens.forEach(t => {
-                if (t.type === 'variable') {
-                    let base = t.val.split(/:\s*(.*)/)[0];
-                    if (window.getConditionContext && window.getConditionContext(base) === 'server') {
-                        hasServerCondition = true;
-                    }
+    let html = '<div class="flex flex-col items-center w-full space-y-4">';
+
+    evalResult.policyResults.forEach(policy => {
+        // Render policy container
+        let policyOpacity = policy.skipped ? 'opacity-50' : 'opacity-100';
+        let policyBorderColor = policy.skipped ? 'border-gray-200 dark:border-gray-800' : 'border-indigo-200 dark:border-indigo-800';
+        let policyBgColor = policy.skipped ? 'bg-gray-50/50 dark:bg-gray-900/10' : 'bg-indigo-50/25 dark:bg-indigo-950/5';
+
+        let pRulesHtml = '';
+
+        if (!policy.skipped && policy.rules) {
+            policy.rules.forEach(rule => {
+                if (!rule.enabled) {
+                    pRulesHtml += `
+                        <div class="p-2 border border-dashed border-gray-200 dark:border-gray-800 rounded text-xs text-gray-400 dark:text-gray-600 bg-gray-50/30 dark:bg-gray-900/5">
+                            Rule: ${window.escapeHtml(rule.name)} (Disabled)
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (rule.skipped) {
+                    pRulesHtml += `
+                        <div class="p-3 bg-red-50/30 dark:bg-red-900/5 border border-red-200/50 dark:border-red-800/30 rounded opacity-60">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-red-700/70 dark:text-red-400/70">Rule: ${window.escapeHtml(rule.name)}</span>
+                                <span class="text-red-500 dark:text-red-500 font-bold text-[9px] uppercase tracking-wide">${window.escapeHtml(rule.skipReason)}</span>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (rule.deferred) {
+                    pRulesHtml += `
+                        <div class="p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-purple-700 dark:text-purple-400">Rule: ${window.escapeHtml(rule.name)}</span>
+                                <span class="text-purple-600 dark:text-purple-400 font-bold text-[9px] uppercase tracking-wide">Deferred to Server</span>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (rule.matched) {
+                    let triggeredActionsList = Object.keys(rule.actions).filter(k => rule.actions[k]).map(k => k.toUpperCase());
+                    let actionsDisplay = triggeredActionsList.length > 0 ? triggeredActionsList.join(', ') : 'NONE';
+                    let haltReason = rule.ruleBlock ? 'Straight Block' : 'Stop Processing';
+                    let haltWarningHtml = (rule.ruleBlock || rule.actions.stopProcessing) ? `
+                        <div class="mt-2 p-1.5 bg-red-100/70 dark:bg-red-900/30 border border-red-300 dark:border-red-800 text-red-800 dark:text-red-400 text-center font-bold text-[10px] rounded uppercase tracking-wide">
+                            Evaluation Halted here (${haltReason})
+                        </div>
+                    ` : '';
+
+                    pRulesHtml += `
+                        <div class="p-4 bg-green-50 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded relative">
+                            <div class="flex justify-between items-center mb-2 text-xs">
+                                <span class="font-bold text-green-900 dark:text-green-400">Rule: ${window.escapeHtml(rule.name)}</span>
+                                <span class="bg-green-600 dark:bg-green-700 text-white px-1.5 py-0.5 rounded text-[10px] font-bold">MATCH</span>
+                            </div>
+                            <div class="text-[11px] bg-white dark:bg-gray-900 p-2.5 border border-green-200 dark:border-green-800 rounded break-words text-gray-700 dark:text-gray-300 shadow-inner">${generateDetailedEvaluationHtml(rule.tokens, simulatorState)}</div>
+                            <div class="mt-2 text-[10px] font-semibold text-green-800 dark:text-green-500">
+                                Actions configured: ${window.escapeHtml(actionsDisplay)}
+                            </div>
+                            ${haltWarningHtml}
+                        </div>
+                    `;
+                } else {
+                    pRulesHtml += `
+                        <div class="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded opacity-75">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-semibold text-gray-600 dark:text-gray-400">Rule: ${window.escapeHtml(rule.name)}</span>
+                                <span class="text-gray-400 dark:text-gray-500 font-bold text-[10px] uppercase tracking-wide">Bypassed</span>
+                            </div>
+                        </div>
+                    `;
                 }
             });
         }
 
-        if (hasServerCondition) {
-            html += `
-                <div class="w-full max-w-2xl p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded shadow-sm">
-                    <div class="flex justify-between items-center">
-                        <span class="font-semibold text-purple-700 dark:text-purple-400">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
-                        <span class="text-purple-600 dark:text-purple-400 font-bold text-[10px] uppercase tracking-wide">Deferred to Server</span>
-                    </div>
+        if (policy.skipped) {
+            pRulesHtml = `
+                <div class="text-center py-2 text-xs text-gray-400 dark:text-gray-600 italic">
+                    All rules skipped because evaluation halted.
                 </div>
             `;
-            if (i < parsedRules.length - 1) html += `<div class="text-purple-300 dark:text-purple-700 text-xl leading-none font-bold">&#8595;</div>`;
-            continue;
+        } else if (pRulesHtml === '') {
+            pRulesHtml = `
+                <div class="text-center py-2 text-xs text-gray-400 dark:text-gray-600 italic">
+                    No active rules configured in this policy.
+                </div>
+            `;
         }
 
-        let isMatch = evaluatePostfix(rule.postfix, simulatorState);
-
-        if (isMatch) {
-            matchedAny = true;
-            phaseActions.monitor = phaseActions.monitor || rule.actions.monitor;
-            phaseActions.notify = phaseActions.notify || rule.actions.notify;
-            
-            let ruleBlock = rule.actions.block;
-            let ruleOverride = rule.actions.override;
-
-            if (ruleBlock) {
-                if (ruleOverride) {
-                    if (simulatorState['_USER_OVERRIDE_']) {
-                        ruleBlock = false; 
-                        overrodeBlock = true;
-                    } else {
-                        failedOverrideBlock = true;
-                    }
-                } else {
-                    straightBlock = true;
-                    overrodeBlock = false;      // Straight block trumps previous overrides
-                    failedOverrideBlock = false; 
-                }
-            }
-            phaseActions.block = phaseActions.block || ruleBlock;
-
-            let triggeredActionsList = Object.keys(rule.actions).filter(k => rule.actions[k]).map(k => k.toUpperCase());
-            let actionsDisplay = triggeredActionsList.length > 0 ? triggeredActionsList.join(', ') : 'NONE';
-
-            html += `
-                <div class="w-full max-w-2xl p-4 bg-green-50 dark:bg-green-900/20 border-2 border-green-400 dark:border-green-600 rounded shadow-md relative">
-                    <div class="flex justify-between items-center mb-2">
-                        <span class="font-bold text-green-900 dark:text-green-400">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
-                        <span class="bg-green-600 dark:bg-green-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">MATCH</span>
+        html += `
+            <div class="w-full max-w-2xl border rounded-lg p-4 shadow-sm space-y-3 transition-opacity ${policyOpacity} ${policyBorderColor} ${policyBgColor}">
+                <div class="flex justify-between items-center pb-2 border-b border-indigo-100/50 dark:border-indigo-900/30">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold uppercase tracking-widest bg-indigo-600 text-white px-1.5 py-0.5 rounded">Policy</span>
+                        <span class="font-bold text-indigo-900 dark:text-indigo-400 text-sm">${window.escapeHtml(policy.name)}</span>
+                        ${!policy.enabled ? '<span class="text-[9px] bg-gray-200 text-gray-600 px-1 rounded font-normal">Disabled</span>' : ''}
                     </div>
-                    <div class="text-xs bg-white dark:bg-gray-900 p-3 border border-green-200 dark:border-green-800 rounded break-words text-gray-700 dark:text-gray-300 shadow-inner">${generateDetailedEvaluationHtml(rule.tokens, simulatorState)}</div>
-                    <div class="mt-2 text-xs font-semibold text-green-800 dark:text-green-500">
-                        Actions configured: ${window.escapeHtml(actionsDisplay)}
-                    </div>
+                    <span class="text-[10px] font-bold uppercase tracking-widest bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 px-2 py-0.5 rounded">Priority ${policy.priority}</span>
                 </div>
-            `;
-
-            let implicitBlockStop = ruleBlock; 
-            if (rule.stopProcessing || implicitBlockStop) {
-                stoppedProcessing = true;
-                let reason = rule.stopProcessing ? 'Stop Processing' : 'Straight Block';
-                html += `<div class="h-6 w-1 bg-red-500 rounded my-1 mx-auto"></div>`;
-                html += `<div class="w-full max-w-2xl p-2 bg-red-100 dark:bg-red-900/30 border-2 border-red-400 dark:border-red-700 text-red-800 dark:text-red-400 text-center font-bold text-sm rounded shadow-md uppercase tracking-wide">Evaluation Halted by ${window.escapeHtml(rule.rName)} (${window.escapeHtml(reason)})</div>`;
-                if (i < parsedRules.length - 1) html += `<div class="text-red-300 dark:text-red-700 text-xl leading-none font-bold">&#8595;</div>`;
-            } else {
-                if (i < parsedRules.length - 1) html += `<div class="text-green-300 dark:text-green-700 text-xl leading-none font-bold">&#8595;</div>`;
-            }
-        } else {
-            html += `
-                <div class="w-full max-w-2xl p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm opacity-75">
-                    <div class="flex justify-between items-center">
-                        <span class="font-semibold text-gray-600 dark:text-gray-400">${window.escapeHtml(rule.pName)} &rarr; ${window.escapeHtml(rule.rName)}</span>
-                        <span class="text-gray-400 dark:text-gray-500 font-bold text-xs uppercase tracking-wide">Bypassed</span>
-                    </div>
+                <div class="space-y-3">
+                    ${pRulesHtml}
                 </div>
-            `;
-            if (i < parsedRules.length - 1) html += `<div class="text-gray-400 dark:text-gray-600 text-xl leading-none font-bold">&#8595;</div>`;
-        }
-    }
+            </div>
+        `;
+    });
+
     html += '</div>';
-    
-    return { html, phaseActions, matchedAny, overrodeBlock, failedOverrideBlock, straightBlock };
+
+    return {
+        html,
+        phaseActions: evalResult.consolidatedActions,
+        matchedAny: evalResult.matchedAny,
+        overrodeBlock: evalResult.overrodeBlock,
+        failedOverrideBlock: evalResult.failedOverrideBlock,
+        straightBlock: evalResult.straightBlock
+    };
 }
 
 function renderSummaryHtml(actionsObj, title) {
@@ -546,39 +561,10 @@ function runSimulation() {
     if (!channelEl || !resultEl) return;
 
     const channel = channelEl.value;
-    let parsedRules = [];
-    
-    try {
-        for (let p of policies) {
-            if (!p.enabled) continue;
-            for (let r of p.rules) {
-                if (!r.enabled) continue;
-                
-                // Filter by Channel Workload
-                if (channel === 'Email' && !r.workloads.email) continue;
-                if (channel !== 'Email' && !r.workloads.endpoint) continue;
 
-                if (r.tokens.length > 0) {
-                    parsedRules.push({
-                        pName: p.name,
-                        rName: r.name,
-                        tokens: r.tokens,
-                        postfix: infixToPostfix(r.tokens),
-                        actions: r.actions,
-                        stopProcessing: r.stopProcessing
-                    });
-                }
-            }
-        }
-    } catch(e) {
-        if (window.logEvent) window.logEvent('error', 'simulator', `Error preparing simulation rules: ${e.message}`, { error: e.message });
-        resultEl.innerHTML = `<div class="text-red-600 text-sm font-mono bg-red-50 p-2 border border-red-200 rounded">Error: ${e.message}</div>`;
-        return;
-    }
-
-    if (parsedRules.length === 0) {
-        if (window.logEvent) window.logEvent('info', 'simulator', `No enabled rules to simulate for ${channel}`);
-        resultEl.innerHTML = `<div class="text-gray-500 text-sm italic p-2 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 max-w-2xl mx-auto">No enabled rules configured for the ${channel} channel available to simulate.</div>`;
+    if (policies.length === 0) {
+        if (window.logEvent) window.logEvent('info', 'simulator', `No policies configured to simulate`);
+        resultEl.innerHTML = `<div class="text-gray-500 text-sm italic p-2 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 max-w-2xl mx-auto">No policies configured to simulate.</div>`;
         return;
     }
 
@@ -588,15 +574,15 @@ function runSimulation() {
         window.logEvent('info', 'simulator', `Running simulation for channel: ${channel}`, {
             channel: channel,
             activeConditions: Object.keys(stateSnapshot).filter(k => stateSnapshot[k] === true),
-            parsedRulesCount: parsedRules.length
+            policiesCount: policies.length
         });
     }
 
     let finalHtml = '';
     
     if (channel === 'Email') {
-        let p1 = evaluatePhase(parsedRules, false);
-        let p2 = evaluatePhase(parsedRules, true);
+        let p1 = evaluatePhase(policies, false);
+        let p2 = evaluatePhase(policies, true);
 
         let combinedStraightBlock = p1.straightBlock || p2.straightBlock;
         let combinedFailedOverride = p1.failedOverrideBlock || p2.failedOverrideBlock;
@@ -634,7 +620,7 @@ function runSimulation() {
             });
         }
     } else {
-        let p = evaluatePhase(parsedRules, true);
+        let p = evaluatePhase(policies, true);
         finalHtml += '<div class="w-full text-center mb-4 mt-2"><h3 class="font-bold text-xl text-blue-800 dark:text-blue-300">Endpoint Evaluation</h3></div>';
         finalHtml += p.html;
         finalHtml += renderSummaryHtml(p, "Final Outcome");

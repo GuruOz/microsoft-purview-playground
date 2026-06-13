@@ -51,6 +51,7 @@ const appGlobals = {
     generateDetailedEvaluationHtml: 'readonly',
     expandTokenSimVars: 'readonly',
     findTriggerAssignment: 'readonly',
+    evaluatePolicyChain: 'readonly',
     // state.js
     generateId: 'readonly',
     saveState: 'readonly',

@@ -344,3 +344,187 @@ window.generateDetailedEvaluationHtml = function(tokens, currentValues) {
     
     return traceHtml;
 };
+
+window.evaluatePolicyChain = function(policies, simulatorState, channel, options = {}) {
+    const { deferServerConditions = false } = options;
+    const policyResults = [];
+    let stoppedProcessing = false;
+    let consolidatedActions = { monitor: false, notify: false, override: false, block: false };
+    let overrodeBlock = false;
+    let failedOverrideBlock = false;
+    let straightBlock = false;
+    let matchedAny = false;
+
+    // Filter policies and rules for this channel
+    for (let pIndex = 0; pIndex < policies.length; pIndex++) {
+        const p = policies[pIndex];
+        if (!p.enabled) {
+            policyResults.push({
+                name: p.name,
+                priority: pIndex,
+                enabled: false,
+                skipped: true,
+                skipReason: 'Policy disabled',
+                rules: []
+            });
+            continue;
+        }
+
+        const ruleResults = [];
+        let policyHalted = false;
+
+        for (let rIndex = 0; rIndex < p.rules.length; rIndex++) {
+            const r = p.rules[rIndex];
+            if (!r.enabled) {
+                ruleResults.push({
+                    name: r.name,
+                    priority: rIndex,
+                    enabled: false,
+                    skipped: true,
+                    skipReason: 'Rule disabled'
+                });
+                continue;
+            }
+
+            // Filter by Workload Channel
+            const isEmail = channel === 'Email';
+            if (isEmail && !r.workloads.email) {
+                ruleResults.push({
+                    name: r.name,
+                    priority: rIndex,
+                    enabled: true,
+                    skipped: true,
+                    skipReason: 'Incompatible workload (non-Email)'
+                });
+                continue;
+            }
+            if (!isEmail && !r.workloads.endpoint) {
+                ruleResults.push({
+                    name: r.name,
+                    priority: rIndex,
+                    enabled: true,
+                    skipped: true,
+                    skipReason: 'Incompatible workload (non-Endpoint)'
+                });
+                continue;
+            }
+
+            // Check if execution has been halted globally or at the policy level
+            if (stoppedProcessing) {
+                ruleResults.push({
+                    name: r.name,
+                    priority: rIndex,
+                    enabled: true,
+                    skipped: true,
+                    skipReason: 'Evaluation halted'
+                });
+                continue;
+            }
+
+            // Check for server-side conditions deferral
+            let hasServerCondition = false;
+            if (deferServerConditions) {
+                r.tokens.forEach(t => {
+                    if (t.type === 'variable') {
+                        let base = t.val.split(/:\s*(.*)/)[0];
+                        if (window.getConditionContext && window.getConditionContext(base) === 'server') {
+                            hasServerCondition = true;
+                        }
+                    }
+                });
+            }
+
+            if (hasServerCondition) {
+                ruleResults.push({
+                    name: r.name,
+                    priority: rIndex,
+                    enabled: true,
+                    deferred: true,
+                    actions: r.actions,
+                    tokens: r.tokens
+                });
+                continue;
+            }
+
+            // Evaluate the rule postfix expression
+            const postfix = window.infixToPostfix(r.tokens);
+            const isMatch = r.tokens.length > 0 ? window.evaluatePostfix(postfix, simulatorState) : false;
+
+            if (isMatch) {
+                matchedAny = true;
+                consolidatedActions.monitor = consolidatedActions.monitor || r.actions.monitor;
+                consolidatedActions.notify = consolidatedActions.notify || r.actions.notify;
+
+                let ruleBlock = r.actions.block;
+                let ruleOverride = r.actions.override;
+                let localOverrodeBlock = false;
+                let localFailedOverrideBlock = false;
+
+                if (ruleBlock) {
+                    if (ruleOverride) {
+                        if (simulatorState['_USER_OVERRIDE_']) {
+                            ruleBlock = false;
+                            overrodeBlock = true;
+                            localOverrodeBlock = true;
+                        } else {
+                            failedOverrideBlock = true;
+                            localFailedOverrideBlock = true;
+                        }
+                    } else {
+                        straightBlock = true;
+                        overrodeBlock = false;      // Straight block trumps previous overrides
+                        failedOverrideBlock = false;
+                    }
+                }
+                consolidatedActions.block = consolidatedActions.block || ruleBlock;
+
+                ruleResults.push({
+                    name: r.name,
+                    priority: rIndex,
+                    enabled: true,
+                    matched: true,
+                    actions: r.actions,
+                    tokens: r.tokens,
+                    ruleBlock,
+                    overrodeBlock: localOverrodeBlock,
+                    failedOverrideBlock: localFailedOverrideBlock
+                });
+
+                // Check StopPolicyProcessing / Block halts
+                const implicitBlockStop = ruleBlock;
+                if (r.stopProcessing || implicitBlockStop) {
+                    stoppedProcessing = true;
+                    policyHalted = true;
+                }
+            } else {
+                ruleResults.push({
+                    name: r.name,
+                    priority: rIndex,
+                    enabled: true,
+                    matched: false,
+                    actions: r.actions,
+                    tokens: r.tokens
+                });
+            }
+        }
+
+        policyResults.push({
+            name: p.name,
+            priority: pIndex,
+            enabled: true,
+            skipped: stoppedProcessing && ruleResults.every(rr => rr.skipReason === 'Evaluation halted'),
+            rules: ruleResults,
+            haltedHere: policyHalted
+        });
+    }
+
+    return {
+        policyResults,
+        consolidatedActions,
+        matchedAny,
+        overrodeBlock,
+        failedOverrideBlock,
+        straightBlock,
+        stoppedProcessing
+    };
+};
