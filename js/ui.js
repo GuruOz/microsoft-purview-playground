@@ -470,11 +470,11 @@ function renderVariables() {
         wrapper.className = 'pool-item-container flex justify-between items-stretch bg-blue-50 dark:bg-gray-800 text-blue-900 dark:text-blue-300 border border-blue-200 dark:border-gray-700 rounded shadow-sm text-sm overflow-hidden shrink-0';
         
         const dragHandle = document.createElement('div');
-        dragHandle.className = 'drag-item px-3 py-2 flex-grow hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors break-words cursor-pointer flex flex-col justify-center';
+        dragHandle.className = 'drag-item px-3 py-2 flex-grow min-w-0 hover:bg-blue-100 dark:hover:bg-gray-700 transition-colors break-words cursor-pointer flex flex-col justify-center';
         dragHandle.draggable = true;
         let base = v.split(/:\s*(.*)/)[0];
         let context = window.getConditionContext(base);
-        dragHandle.innerHTML = `<div class="flex items-center justify-between"><span>${window.escapeHtml(v)}</span>${window.renderContextBadge(context)}</div>`;
+        dragHandle.innerHTML = `<div class="flex items-center justify-between gap-1"><span class="break-words min-w-0">${window.escapeHtml(v)}</span><span class="shrink-0">${window.renderContextBadge(context)}</span></div>`;
         dragHandle.dataset.type = 'variable';
         dragHandle.dataset.val = v;
         dragHandle.dataset.source = 'pool';

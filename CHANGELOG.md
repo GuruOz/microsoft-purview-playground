@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.4.0] - 2026-06-13
+
+### Added
+- Shared header component (`js/nav.js`): consistent brand mark, the **"Purview Playground"** product name, and icon-equipped navigation on every page
+- Simulator: a **"Conditions set to True"** summary row above the condition list, with one-click removal chips
+- Prominent **production-safety warning** when exporting to Purview PowerShell JSON (back up first, review carefully, use at your own risk)
+
+### Changed
+- Every page now shows the "Purview Playground" product name in its header, with the page name as a subtitle
+- Navigation links across all pages now share consistent icons for a cohesive look
+
+### Fixed
+- Condition pool: the "+ Add" and edit (pencil) buttons are no longer pushed out of view by long condition names — the label now wraps and the actions stay visible
+
 ## [1.3.0] - 2026-06-13
 
 ### Changed
