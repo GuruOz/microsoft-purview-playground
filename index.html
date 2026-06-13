@@ -56,7 +56,28 @@
                 <h2 class="text-xl font-bold dark:text-white">Import / Export Data</h2>
                 <button onclick="toggleModal()" aria-label="Close import/export dialog" class="text-gray-500 hover:text-black dark:hover:text-white font-bold text-xl">&times;</button>
             </div>
-            <textarea id="jsonPayload" class="w-full flex-grow border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded p-4 font-mono text-xs focus:outline-none focus:border-blue-500 mb-4" placeholder='Paste JSON here...'></textarea>
+            <textarea id="jsonPayload" class="w-full flex-grow border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded p-4 font-mono text-xs focus:outline-none focus:border-blue-500 mb-3" placeholder='Paste JSON here...'></textarea>
+            <!-- Format guide -->
+            <div class="mb-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="rounded border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 p-2.5">
+                    <div class="font-bold text-purple-800 dark:text-purple-300 mb-1 flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full bg-purple-600"></span> Purview PowerShell format
+                    </div>
+                    <ul class="text-purple-700 dark:text-purple-400 space-y-0.5 leading-snug">
+                        <li><strong>Import:</strong> paste JSON from <code class="font-mono">Get-DlpComplianceRule</code> to visualise an existing rule.</li>
+                        <li><strong>Export:</strong> generates JSON ready for <code class="font-mono">New-DlpComplianceRule</code> — use with caution in production.</li>
+                    </ul>
+                </div>
+                <div class="rounded border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-2.5">
+                    <div class="font-bold text-blue-800 dark:text-blue-300 mb-1 flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full bg-blue-600"></span> Visualizer workspace format
+                    </div>
+                    <ul class="text-blue-700 dark:text-blue-400 space-y-0.5 leading-snug">
+                        <li><strong>Import:</strong> restore a previously exported Purview Playground workspace.</li>
+                        <li><strong>Export:</strong> save your current workspace for backup or sharing — <em>not</em> for Purview PowerShell.</li>
+                    </ul>
+                </div>
+            </div>
             <div class="flex justify-between gap-4">
                 <div class="space-x-2">
                     <button onclick="importPurviewJSON()" class="bg-purple-600 text-white px-4 py-2 rounded font-semibold hover:bg-purple-700">Import Purview PowerShell JSON</button>
@@ -116,7 +137,10 @@
             <!-- Left Pane: Hierarchy -->
             <div class="lg:col-span-3 space-y-6">
                 <div class="flex flex-wrap justify-between items-end gap-2 border-b border-gray-300 dark:border-gray-700 pb-2">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">Policy & Rule Hierarchy</h2>
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800 dark:text-white">Policy &amp; Rule Hierarchy</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">A <span class="font-semibold text-indigo-700 dark:text-indigo-400">Policy</span> is the enforcement container — it holds one or more <span class="font-semibold text-blue-700 dark:text-blue-400">Rules</span>. Rules are evaluated in priority order; the first matching Rule triggers its actions.</p>
+                    </div>
                     <button onclick="addPolicy()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700 font-semibold shadow">+ New Policy</button>
                 </div>
 

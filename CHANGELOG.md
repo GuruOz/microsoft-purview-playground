@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.5.0] - 2026-06-13
+
+### Added
+- **Import/Export format guide**: the modal now shows a colour-coded legend explaining the difference between Purview PowerShell format (purple) and Visualizer workspace format (blue) — first-time users know exactly which button to use
+- **Policy & Rule visual hierarchy**: Policies now have an indigo badge and indigo-tinted background; Rules have a blue badge and blue-bordered card, making the containment relationship immediately obvious
+- Hierarchy caption below the "Policy & Rule Hierarchy" heading explains that Policies are enforcement containers, Rules are evaluated in priority order, and the first match triggers actions
+
+### Changed
+- Policy cards use an indigo border and background (was grey) to visually separate them from Rule cards
+- Rule cards use a blue border (was grey) and gain a "Rule" badge alongside each Policy's "Policy" badge
+
 ## [1.4.0] - 2026-06-13
 
 ### Added

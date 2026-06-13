@@ -82,8 +82,8 @@ function renderPolicies() {
 
     policies.forEach((policy, pIndex) => {
         const pDiv = document.createElement('div');
-        pDiv.className = `p-4 rounded shadow-sm border relative transition-colors ${policy.enabled ? 'bg-gray-200 dark:bg-gray-800 border-gray-300 dark:border-gray-600' : 'bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-800 opacity-60'}`;
-        
+        pDiv.className = `p-4 rounded shadow-sm border-2 relative transition-colors ${policy.enabled ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-700' : 'bg-indigo-50/40 dark:bg-indigo-950/10 border-indigo-200 dark:border-indigo-900 opacity-60'}`;
+
         let pHeader = `
             <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
                 <div class="flex flex-wrap items-center gap-3">
@@ -91,8 +91,9 @@ function renderPolicies() {
                         <button data-action="move-policy-up" data-pindex="${pIndex}" aria-label="Move policy up" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                         <button data-action="move-policy-down" data-pindex="${pIndex}" aria-label="Move policy down" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === policies.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                     </div>
-                    <h2 class="font-bold text-lg outline-none focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] max-w-full break-words dark:text-white" contenteditable="true" data-type="policy" data-pindex="${pIndex}">${window.escapeHtml(policy.name)}</h2>
-                    <span class="text-xs bg-gray-300 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 font-mono">Priority ${pIndex}</span>
+                    <span class="text-[10px] font-bold uppercase tracking-widest bg-indigo-600 text-white px-1.5 py-0.5 rounded shrink-0">Policy</span>
+                    <h2 class="font-bold text-lg outline-none focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-indigo-300 rounded px-1 min-w-[100px] max-w-full break-words dark:text-white" contenteditable="true" data-type="policy" data-pindex="${pIndex}">${window.escapeHtml(policy.name)}</h2>
+                    <span class="text-xs bg-indigo-100 dark:bg-indigo-900/40 px-2 py-1 rounded text-indigo-700 dark:text-indigo-300 font-mono">Priority ${pIndex}</span>
                     <label class="flex items-center gap-1 text-sm font-normal ml-4 cursor-pointer dark:text-gray-300"><input type="checkbox" data-action="toggle-policy" data-pindex="${pIndex}" ${policy.enabled ? 'checked' : ''}> Enabled</label>
                 </div>
                 <div class="flex gap-2">
@@ -100,7 +101,7 @@ function renderPolicies() {
                     <button data-action="delete-policy" data-pindex="${pIndex}" class="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-3 py-1 rounded hover:bg-red-200 dark:hover:bg-red-900/50 font-medium shadow-sm">Delete Policy</button>
                 </div>
             </div>
-            <div class="space-y-4 pl-6 border-l-2 border-gray-400 dark:border-gray-600">
+            <div class="space-y-4 pl-6 border-l-2 border-indigo-300 dark:border-indigo-700">
         `;
         pDiv.innerHTML = pHeader;
 
@@ -118,9 +119,9 @@ function renderPolicies() {
 
             const rDiv = document.createElement('div');
             let rClass = 'p-4 rounded shadow-sm border transition-all cursor-pointer ';
-            if (isActive) rClass += 'bg-blue-50 dark:bg-gray-700 border-blue-400 ring-1 ring-blue-400 ';
+            if (isActive) rClass += 'bg-blue-50 dark:bg-blue-950/40 border-blue-400 ring-1 ring-blue-400 ';
             else if (!isRuleEnabled) rClass += 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60 ';
-            else rClass += 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 ';
+            else rClass += 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-900 ';
 
             rDiv.className = rClass;
             rDiv.dataset.pindex = pIndex;
@@ -143,6 +144,7 @@ function renderPolicies() {
                             <button data-action="move-rule-up" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule up" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                             <button data-action="move-rule-down" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule down" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === policy.rules.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                         </div>
+                        <span class="text-[10px] font-bold uppercase tracking-widest bg-blue-500 text-white px-1.5 py-0.5 rounded shrink-0">Rule</span>
                         <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] max-w-full break-words dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
                         <span class="text-xs font-mono ${isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-gray-400'}">Priority ${rIndex} ${isActive ? '(Editing)' : ''}</span>
                         ${warningBadgesHtml}
