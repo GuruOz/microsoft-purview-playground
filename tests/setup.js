@@ -44,6 +44,7 @@ loadScript('js/state.js');
 loadScript('js/evaluator.js');
 loadScript('js/parser.js');
 loadScript('js/conflict-detector.js');
+loadScript('js/nl-generator.js');
 
 beforeEach(() => {
     localStorage.clear();
@@ -57,4 +58,10 @@ beforeEach(() => {
     window.simulatorState = {};
     window.dlpLogs = [];
     window.lastLocalStorageAction = '';
+    window.nlSettings = {
+        mode: 'static1',
+        aiProvider: 'openai',
+        aiApiKey: ''
+    };
 });
+
