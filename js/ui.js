@@ -85,13 +85,13 @@ function renderPolicies() {
         pDiv.className = `p-4 rounded shadow-sm border relative transition-colors ${policy.enabled ? 'bg-gray-200 dark:bg-gray-800 border-gray-300 dark:border-gray-600' : 'bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-gray-800 opacity-60'}`;
         
         let pHeader = `
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-3">
+            <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                <div class="flex flex-wrap items-center gap-3">
                     <div class="flex flex-col">
                         <button data-action="move-policy-up" data-pindex="${pIndex}" aria-label="Move policy up" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                         <button data-action="move-policy-down" data-pindex="${pIndex}" aria-label="Move policy down" class="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white leading-none" ${pIndex === policies.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                     </div>
-                    <h2 class="font-bold text-lg outline-none focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="policy" data-pindex="${pIndex}">${window.escapeHtml(policy.name)}</h2>
+                    <h2 class="font-bold text-lg outline-none focus:bg-white dark:focus:bg-gray-700 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] max-w-full break-words dark:text-white" contenteditable="true" data-type="policy" data-pindex="${pIndex}">${window.escapeHtml(policy.name)}</h2>
                     <span class="text-xs bg-gray-300 dark:bg-gray-700 px-2 py-1 rounded text-gray-700 dark:text-gray-300 font-mono">Priority ${pIndex}</span>
                     <label class="flex items-center gap-1 text-sm font-normal ml-4 cursor-pointer dark:text-gray-300"><input type="checkbox" data-action="toggle-policy" data-pindex="${pIndex}" ${policy.enabled ? 'checked' : ''}> Enabled</label>
                 </div>
@@ -137,13 +137,13 @@ function renderPolicies() {
             });
 
             let rHeader = `
-                <div class="flex justify-between items-center mb-2">
+                <div class="flex flex-wrap justify-between items-center gap-2 mb-2">
                     <div class="flex items-center gap-3 flex-wrap">
                         <div class="flex flex-col">
                             <button data-action="move-rule-up" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule up" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                             <button data-action="move-rule-down" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule down" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === policy.rules.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                         </div>
-                        <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
+                        <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] max-w-full break-words dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
                         <span class="text-xs font-mono ${isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-gray-400'}">Priority ${rIndex} ${isActive ? '(Editing)' : ''}</span>
                         ${warningBadgesHtml}
 
@@ -153,7 +153,7 @@ function renderPolicies() {
                             <label class="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 cursor-pointer"><input type="checkbox" data-action="toggle-workload" data-workload="endpoint" data-pindex="${pIndex}" data-rindex="${rIndex}" ${rule.workloads.endpoint ? 'checked' : ''}> Endpoint</label>
                         </div>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <button data-action="explain-nl" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold border-r border-gray-300 dark:border-gray-600 pr-2">Explain using Natural Language</button>
                         <button data-action="clear-logic" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold">Clear Logic</button>
                         <button data-action="delete-rule" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold border-l border-red-200 dark:border-red-800 pl-2">Delete Rule</button>
