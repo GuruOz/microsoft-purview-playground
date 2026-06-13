@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.anthropic.com https://api.deepseek.com; img-src 'self' data:; font-src 'self' data:;">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="manifest" href="manifest.json">
+    <title>Regex Builder - Purview Playground</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: {} }
+        }
+        if (localStorage.getItem('dlp_theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-100 p-6 font-sans transition-colors duration-200">
+
+    <div class="w-full mx-auto space-y-6">
+
+        <!-- Header -->
+        <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-y-3">
+            <div class="flex items-center gap-3">
+                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                <h1 class="text-xl font-bold dark:text-white">Regex Builder</h1>
+            </div>
+
+            <div class="flex flex-wrap gap-x-6 gap-y-3 items-center">
+                <!-- Navigation -->
+                <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold">
+                    <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Rule Builder
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="simulator.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Simulator Tab
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="summary.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Rule Summary
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <span class="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 cursor-default">
+                        Regex Builder
+                    </span>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="settings.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Settings
+                    </a>
+                </nav>
+
+                <button onclick="toggleTheme()" class="text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white" title="Toggle Dark Mode">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+            <!-- AI Regex Builder -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-200 dark:border-gray-700 space-y-4">
+                <div class="border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">AI Regex Builder</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Describe what you want to match (paste example strings too) and generate a .NET-compatible regex for Purview conditions like "Subject matches patterns", then chat to refine it. Uses the AI provider and API key set in <a href="settings.html" class="underline text-indigo-600 dark:text-indigo-400">Settings</a>.</p>
+                </div>
+
+                <div>
+                    <label for="regexGoalInput" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">What should the regex match?</label>
+                    <textarea id="regexGoalInput" rows="3" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. Match Singapore NRIC numbers like S1234567A or T0123456Z"></textarea>
+                    <div class="flex gap-2 mt-2">
+                        <button id="regexStartBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-semibold shadow transition-colors">Generate Regex</button>
+                        <button id="regexClearBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Start Over</button>
+                    </div>
+                    <div id="regexStatus" class="text-xs mt-2 font-semibold text-gray-500 dark:text-gray-400" role="status" aria-live="polite"></div>
+                </div>
+
+                <div id="regexChatThread" class="flex flex-col gap-2 max-h-96 overflow-y-auto custom-scrollbar" aria-label="Regex builder conversation"></div>
+
+                <div id="regexRefineRow" class="hidden">
+                    <div class="flex gap-2">
+                        <textarea id="regexChatInput" rows="1" class="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500" placeholder="Refine it… e.g. also allow lowercase letters"></textarea>
+                        <button id="regexSendBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded text-sm font-semibold shadow transition-colors">Send</button>
+                    </div>
+                    <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Use the "Send to tester →" button on any generated regex to drop it into the tester on the right.</p>
+                </div>
+            </div>
+
+            <!-- Regex Tester (standalone) -->
+            <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-200 dark:border-gray-700 space-y-4 lg:sticky lg:top-6">
+                <div class="border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">Regex Tester</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Paste any regex and a sample string to check for a match. Runs entirely in your browser — independent of the AI chat.</p>
+                </div>
+
+                <div>
+                    <label for="regexTestPattern" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Regex pattern</label>
+                    <textarea id="regexTestPattern" rows="2" spellcheck="false" class="w-full font-mono text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 p-2 rounded focus:outline-none focus:border-indigo-500 resize-none" placeholder="e.g. \b[STFG]\d{7}[A-Z]\b"></textarea>
+                    <label class="flex items-center gap-2 mt-2 text-xs font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <input type="checkbox" id="regexIgnoreCase" class="cursor-pointer"> Ignore case <span class="font-mono font-normal text-gray-400">(adds the .NET (?i) flag)</span>
+                    </label>
+                </div>
+
+                <div>
+                    <label for="regexTestInput" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Sample string</label>
+                    <textarea id="regexTestInput" rows="2" class="w-full text-sm font-mono border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded focus:outline-none focus:border-indigo-500 resize-none" placeholder="e.g. My NRIC is S1234567A"></textarea>
+                </div>
+
+                <div class="flex items-center gap-3 p-3 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Result:</span>
+                    <span id="regexTestResult" class="text-sm font-bold text-gray-400" aria-live="polite">Enter a pattern and a sample string</span>
+                </div>
+                <div id="regexMatchDetail" class="text-xs font-mono text-gray-600 dark:text-gray-300 break-words" aria-live="polite"></div>
+
+                <p class="text-[10px] text-gray-400 dark:text-gray-500">Tested with the browser's JavaScript engine, which covers most patterns. Purview uses the .NET engine — verify .NET-only syntax (e.g. inline flags, balancing groups) in PowerShell before deploying.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Toggling support -->
+    <script>
+        window.toggleTheme = function() {
+            const html = document.documentElement;
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('dlp_theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('dlp_theme', 'dark');
+            }
+        };
+    </script>
+    <script src="js/version.js"></script>
+    <script src="js/logger.js"></script>
+    <script src="js/nl-generator.js"></script>
+    <script src="js/regex-builder.js"></script>
+    <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+    <footer class="text-center text-xs text-gray-400 dark:text-gray-600 py-3" role="contentinfo">
+        Purview Playground &mdash; <span id="appVersionFooter"></span>
+        <script>document.getElementById('appVersionFooter').textContent = 'v' + (window.APP_VERSION || '1.0.0');</script>
+    </footer>
+</body>
+</html>

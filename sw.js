@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dlp-visualizer-v1.0.0';
+const CACHE_NAME = 'dlp-visualizer-v1.3.0';
 
 const ASSETS = [
     '/purview-dlp-logic-visualiser/',
@@ -6,6 +6,7 @@ const ASSETS = [
     '/purview-dlp-logic-visualiser/simulator.html',
     '/purview-dlp-logic-visualiser/summary.html',
     '/purview-dlp-logic-visualiser/settings.html',
+    '/purview-dlp-logic-visualiser/regex.html',
     '/purview-dlp-logic-visualiser/css/styles.css',
     '/purview-dlp-logic-visualiser/js/version.js',
     '/purview-dlp-logic-visualiser/js/logger.js',
@@ -20,7 +21,8 @@ const ASSETS = [
     '/purview-dlp-logic-visualiser/js/app.js',
     '/purview-dlp-logic-visualiser/js/simulator-ui.js',
     '/purview-dlp-logic-visualiser/js/summary-ui.js',
-    '/purview-dlp-logic-visualiser/js/settings-ui.js'
+    '/purview-dlp-logic-visualiser/js/settings-ui.js',
+    '/purview-dlp-logic-visualiser/js/regex-builder.js'
 ];
 
 self.addEventListener('install', event => {
