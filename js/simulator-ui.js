@@ -1,5 +1,16 @@
 
 
+let simSortAlpha = false;
+
+function updateScrollHint() {
+    const el = document.getElementById('simulatorVariables');
+    const hint = document.getElementById('simScrollHint');
+    if (!el || !hint) return;
+    const scrollable = el.scrollHeight > el.clientHeight + 4;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+    hint.classList.toggle('hidden', !scrollable || atBottom);
+}
+
 function filterSimulatorVariables() {
     const searchInput = document.getElementById('simSearchInput');
     if (!searchInput) return;
@@ -125,7 +136,8 @@ function updateSimulatorVariables() {
     currentVars.forEach(v => {
         if (!(v in simulatorState)) simulatorState[v] = false;
     });
-    renderSimulatorUI(currentVars, channel);
+    const sorted = simSortAlpha ? [...currentVars].sort((a, b) => a.localeCompare(b)) : currentVars;
+    renderSimulatorUI(sorted, channel);
     renderTriggerHelper(channel);
 }
 
@@ -212,10 +224,13 @@ function renderTriggerHelper(channel) {
 
     rules.forEach(rule => {
         const row = document.createElement('div');
-        row.className = 'flex items-center justify-between gap-2 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm';
+        row.className = 'p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm space-y-1';
+
+        const top = document.createElement('div');
+        top.className = 'flex items-center justify-between gap-2';
 
         const span = document.createElement('span');
-        span.className = 'text-xs dark:text-gray-200 break-words leading-tight flex-1';
+        span.className = 'text-xs font-semibold dark:text-gray-200 break-words leading-tight flex-1';
         span.innerText = `${rule.pName} → ${rule.rName}`;
 
         const btn = document.createElement('button');
@@ -235,8 +250,18 @@ function renderTriggerHelper(channel) {
             if (window.showToast) window.showToast(`Inputs set to trigger "${rule.rName}".`, 'success');
         };
 
-        row.appendChild(span);
-        row.appendChild(btn);
+        top.appendChild(span);
+        top.appendChild(btn);
+        row.appendChild(top);
+
+        // Condition preview
+        if (rule.tokens.length > 0) {
+            const preview = document.createElement('div');
+            preview.className = 'text-[10px] text-gray-400 dark:text-gray-500 font-mono leading-snug break-words';
+            preview.textContent = rule.tokens.map(t => t.type === 'operator' ? t.val : `[${t.val}]`).join(' ');
+            row.appendChild(preview);
+        }
+
         container.appendChild(row);
     });
 }
@@ -326,6 +351,7 @@ function renderSimulatorUI(vars, channel) {
     }
 
     filterSimulatorVariables();
+    updateScrollHint();
 }
 
 function evaluatePhase(parsedRules, ignoreServerConditions) {
@@ -588,3 +614,9 @@ window.updateSimulatorVariables = updateSimulatorVariables;
 window.renderSimulatorUI = renderSimulatorUI;
 window.runSimulation = runSimulation;
 window.resetSimulatorInputs = resetSimulatorInputs;
+window.updateScrollHint = updateScrollHint;
+
+Object.defineProperty(window, 'simSortAlpha', {
+    get: () => simSortAlpha,
+    set: v => { simSortAlpha = v; }
+});
