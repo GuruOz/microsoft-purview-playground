@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dlp-visualizer-v1.4.0';
+const CACHE_NAME = 'dlp-visualizer-v1.5.0';
 
 const ASSETS = [
     '/purview-dlp-logic-visualiser/',
