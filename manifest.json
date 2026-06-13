@@ -1,6 +1,6 @@
 {
-    "name": "Purview DLP Logic Visualizer",
-    "short_name": "DLP Visualizer",
+    "name": "Purview Playground",
+    "short_name": "Purview Playground",
     "description": "Build, visualize, and simulate Microsoft Purview DLP policy logic.",
     "start_url": "/purview-dlp-logic-visualiser/",
     "scope": "/purview-dlp-logic-visualiser/",

@@ -6,7 +6,7 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.openai.com https://generativelanguage.googleapis.com https://api.anthropic.com https://api.deepseek.com; img-src 'self' data:; font-src 'self' data:;">
     <meta name="theme-color" content="#4f46e5">
     <link rel="manifest" href="manifest.json">
-    <title>DLP Event Simulator</title>
+    <title>Simulator - Purview Playground</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -84,8 +84,8 @@
                 </div>
 
                 <div>
-                    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">2. Variables Checklist</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Check conditions to simulate them evaluating as True.</p>
+                    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">2. Event Conditions</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Set each condition to <span class="font-bold text-green-600 dark:text-green-400">True</span> or <span class="font-bold text-red-500 dark:text-red-400">False</span> to describe the event you want to test. Rules using NOT need their condition set to False to match.</p>
                     <input type="text" id="simSearchInput" placeholder="Search variables..." class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-xs focus:outline-none focus:border-indigo-500 mb-2">
                     
                     <div id="simulatorVariables" class="flex flex-col gap-2 max-h-[70vh] overflow-y-auto pr-1 custom-scrollbar bg-gray-50 dark:bg-gray-900/50 rounded border border-gray-200 dark:border-gray-700 p-2">
@@ -93,8 +93,16 @@
                     </div>
                 </div>
 
+                <div>
+                    <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">3. Rule Trigger Helper</h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Not sure what to set? One click finds a combination of inputs that makes the rule match — including conditions that must be False.</p>
+                    <div id="simTriggerHelper" class="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                        <!-- Rule list loaded by JS -->
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-2 border-t border-gray-200 dark:border-gray-700 pt-3">
-                    <button id="clearSimBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white py-2 px-3 rounded text-xs font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Clear Checked</button>
+                    <button id="clearSimBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white py-2 px-3 rounded text-xs font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Reset All to False</button>
                     <button id="runSimBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 rounded text-xs font-bold shadow transition-colors">Run Simulation</button>
                 </div>
             </div>
@@ -102,14 +110,14 @@
             <!-- Right Side: Run Output Trace Timeline -->
             <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-5 rounded shadow-sm border border-gray-200 dark:border-gray-700 min-h-[60vh] flex flex-col">
                 <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">3. Evaluation Trace Timeline</h2>
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">4. Evaluation Trace Timeline</h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Displays the matching trace path of rule evaluations and actions triggered in sequence.</p>
                 </div>
                 
                 <div id="simulationResult" class="flex-grow flex flex-col justify-center">
                     <div class="text-center py-12 text-gray-400 dark:text-gray-500 italic text-sm">
                         <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
-                        Select simulator variables and click "Run Simulation" to execute evaluation.
+                        Set the event conditions (or use the Rule Trigger Helper) and click "Run Simulation" to execute evaluation.
                     </div>
                 </div>
             </div>
@@ -139,7 +147,7 @@
     <script src="js/simulator-app.js"></script>
     <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
     <footer class="text-center text-xs text-gray-400 dark:text-gray-600 py-3" role="contentinfo">
-        Purview DLP Logic Visualizer &mdash; <span id="appVersionFooter"></span>
+        Purview Playground &mdash; <span id="appVersionFooter"></span>
         <script>document.getElementById('appVersionFooter').textContent = 'v' + (window.APP_VERSION || '1.0.0');</script>
     </footer>
 </body>

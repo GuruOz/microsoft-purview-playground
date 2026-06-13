@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generates PWA icons for Purview DLP Logic Visualizer.
+ * Generates PWA icons for Purview Playground.
  * Pure Node.js — no external dependencies.
  * Run: node scripts/generate-icons.js
  */

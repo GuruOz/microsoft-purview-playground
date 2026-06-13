@@ -126,6 +126,126 @@ function updateSimulatorVariables() {
         if (!(v in simulatorState)) simulatorState[v] = false;
     });
     renderSimulatorUI(currentVars, channel);
+    renderTriggerHelper(channel);
+}
+
+// --- Explicit True/False toggle controls -----------------------------------
+// Each condition gets a segmented [True | False] control instead of a checkbox,
+// so negated conditions ("NOT attachment is password protected") are an active
+// choice rather than something the user must remember to leave unchecked.
+
+function refreshSimToggle(wrap, isTrue) {
+    const btns = wrap.querySelectorAll('button');
+    if (btns.length !== 2) return;
+    btns[0].className = 'px-2 py-0.5 transition-colors ' + (isTrue
+        ? 'bg-green-600 text-white'
+        : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-green-50 dark:hover:bg-green-900/30');
+    btns[1].className = 'px-2 py-0.5 transition-colors ' + (!isTrue
+        ? 'bg-red-500 text-white'
+        : 'bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/30');
+}
+
+function setSimVar(v, val) {
+    simulatorState[v] = val;
+    // Sync every rendered copy of this variable (Email view repeats vars across categories)
+    document.querySelectorAll(`.sim-toggle[data-var="${CSS.escape(v)}"]`).forEach(w => refreshSimToggle(w, val));
+}
+
+function createSimToggle(v) {
+    const wrap = document.createElement('div');
+    wrap.className = 'sim-toggle flex shrink-0 rounded overflow-hidden border border-gray-300 dark:border-gray-600 text-[10px] font-bold';
+    wrap.dataset.var = v;
+
+    [['True', true], ['False', false]].forEach(([label, val]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = label;
+        b.setAttribute('aria-label', `Set "${v}" to ${label}`);
+        b.onclick = (e) => { e.preventDefault(); e.stopPropagation(); setSimVar(v, val); };
+        wrap.appendChild(b);
+    });
+    refreshSimToggle(wrap, !!simulatorState[v]);
+    return wrap;
+}
+
+function createSimVarRow(v, extraClasses) {
+    const row = document.createElement('div');
+    row.className = 'sim-var-item flex items-center justify-between gap-2 ' + extraClasses;
+
+    const span = document.createElement('span');
+    span.className = 'break-words leading-tight dark:text-gray-200 text-xs flex-1';
+    span.innerText = v;
+
+    row.appendChild(span);
+    row.appendChild(createSimToggle(v));
+    return row;
+}
+
+// --- Rule Trigger Helper ----------------------------------------------------
+// One click computes a satisfying input combination for a rule (including
+// conditions that must be False) and applies it to the simulator state.
+
+function getSimRules(channel) {
+    const out = [];
+    policies.forEach(p => {
+        if (!p.enabled) return;
+        p.rules.forEach(r => {
+            if (!r.enabled || r.tokens.length === 0) return;
+            if (channel === 'Email' && !r.workloads.email) return;
+            if (channel !== 'Email' && !r.workloads.endpoint) return;
+            out.push({ pName: p.name, rName: r.name, tokens: r.tokens });
+        });
+    });
+    return out;
+}
+
+function renderTriggerHelper(channel) {
+    const container = document.getElementById('simTriggerHelper');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const rules = getSimRules(channel);
+    if (rules.length === 0) {
+        container.innerHTML = '<div class="text-gray-500 text-xs italic p-1">No enabled rules for this channel.</div>';
+        return;
+    }
+
+    rules.forEach(rule => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-2 p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-sm';
+
+        const span = document.createElement('span');
+        span.className = 'text-xs dark:text-gray-200 break-words leading-tight flex-1';
+        span.innerText = `${rule.pName} → ${rule.rName}`;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = 'Set inputs';
+        btn.className = 'shrink-0 text-[10px] font-bold uppercase tracking-wide bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 px-2 py-1 rounded hover:bg-indigo-200 dark:hover:bg-indigo-900/60 transition-colors';
+        btn.setAttribute('aria-label', `Set inputs to trigger rule ${rule.rName}`);
+        btn.onclick = () => {
+            const assignment = window.findTriggerAssignment(rule.tokens);
+            if (!assignment) {
+                if (window.showToast) window.showToast(`"${rule.rName}" can never match — its logic is contradictory or invalid.`, 'error');
+                return;
+            }
+            Object.keys(assignment).forEach(k => { simulatorState[k] = assignment[k]; });
+            updateSimulatorVariables();
+            runSimulation();
+            if (window.showToast) window.showToast(`Inputs set to trigger "${rule.rName}".`, 'success');
+        };
+
+        row.appendChild(span);
+        row.appendChild(btn);
+        container.appendChild(row);
+    });
+}
+
+function resetSimulatorInputs() {
+    for (let key in simulatorState) {
+        simulatorState[key] = false;
+    }
+    updateSimulatorVariables();
 }
 
 function renderSimulatorUI(vars, channel) {
@@ -190,28 +310,8 @@ function renderSimulatorUI(vars, channel) {
             itemsContainer.className = 'flex flex-col max-h-48 overflow-y-auto custom-scrollbar';
             
             categories[cat].forEach(v => {
-                const label = document.createElement('label');
-                label.className = 'sim-var-item flex items-start gap-2 p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 cursor-pointer text-sm transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-b-0';
-                
-                const cb = document.createElement('input');
-                cb.type = 'checkbox';
-                cb.dataset.var = v;
-                cb.className = 'mt-1 shrink-0 cursor-pointer text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded';
-                cb.checked = !!simulatorState[v];
-                cb.onchange = () => { 
-                    simulatorState[v] = cb.checked; 
-                    document.querySelectorAll(`input[data-var="${CSS.escape(v)}"]`).forEach(otherCb => {
-                        if (otherCb !== cb) otherCb.checked = cb.checked;
-                    });
-                };
-                
-                const span = document.createElement('span');
-                span.className = 'break-words leading-tight dark:text-gray-200 text-xs mt-0.5';
-                span.innerText = v;
-                
-                label.appendChild(cb);
-                label.appendChild(span);
-                itemsContainer.appendChild(label);
+                itemsContainer.appendChild(createSimVarRow(v,
+                    'p-2 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-sm transition-colors border-b border-gray-100 dark:border-gray-700/50 last:border-b-0'));
             });
             
             groupDiv.appendChild(itemsContainer);
@@ -220,22 +320,8 @@ function renderSimulatorUI(vars, channel) {
 
     } else {
         vars.forEach(v => {
-            const label = document.createElement('label');
-            label.className = 'sim-var-item flex items-start gap-2 p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:border-indigo-400 dark:hover:border-indigo-500 cursor-pointer text-sm shadow-sm transition-colors';
-            
-            const cb = document.createElement('input');
-            cb.type = 'checkbox';
-            cb.className = 'mt-1 shrink-0 cursor-pointer';
-            cb.checked = !!simulatorState[v];
-            cb.onchange = () => { simulatorState[v] = cb.checked; };
-            
-            const span = document.createElement('span');
-            span.className = 'break-words leading-tight dark:text-gray-200';
-            span.innerText = v;
-            
-            label.appendChild(cb);
-            label.appendChild(span);
-            container.appendChild(label);
+            container.appendChild(createSimVarRow(v,
+                'p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:border-indigo-400 dark:hover:border-indigo-500 text-sm shadow-sm transition-colors'));
         });
     }
 
@@ -501,3 +587,4 @@ window.filterSimulatorVariables = filterSimulatorVariables;
 window.updateSimulatorVariables = updateSimulatorVariables;
 window.renderSimulatorUI = renderSimulatorUI;
 window.runSimulation = runSimulation;
+window.resetSimulatorInputs = resetSimulatorInputs;

@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.2.0] - 2026-06-13
+
+### Changed
+- **Project renamed to Purview Playground** (formerly Purview DLP Logic Visualizer)
+- Simulator conditions now use explicit True/False toggles instead of checkboxes, so negated conditions ("NOT attachment is password protected") are an active choice rather than something left unchecked
+- Page headers and policy/rule rows wrap on narrow screens — no more horizontal scrolling on mobile
+
+### Added
+- **Rule Trigger Helper** in the simulator: one click computes and applies a combination of inputs that makes a chosen rule match, including conditions that must be False
+- **AI Regex Builder** on the Settings page: describe what you want to match, get a .NET-compatible regex for Purview conditions, refine it through chat, and test it live against sample strings
+- Microsoft non-affiliation disclaimer in the README
+
+## [1.1.0] - 2026-06-12
+
+### Added
+- Progressive Web App support: manifest, icons, and offline-capable service worker
+- Share links compressed with gzip (`CompressionStream`), producing much shorter URLs; legacy links still work
+
 ## [1.0.0] - 2026-06-12
 
 ### Added
