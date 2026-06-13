@@ -101,7 +101,7 @@ npx serve .
 
 ## Contributing
 
-1. Fork the repository on GitHub: [https://github.com/GuruOz/Purview-DLP-Logic-Visualiser](https://github.com/GuruOz/Purview-DLP-Logic-Visualiser)
+1. Fork the repository on GitHub: [https://github.com/GuruOz/microsoft-purview-playground](https://guruoz.github.io/microsoft-purview-playground/)
 2. Create a feature branch from `main`:
    ```bash
    git checkout -b feature/your-feature-name
@@ -109,7 +109,7 @@ npx serve .
 3. Make your changes, add or update tests as appropriate, and verify `npm test` and `npm run lint` pass cleanly
 4. Open a pull request against `main` with a clear description of the change and the problem it solves
 
-Bug reports and feature requests are welcome via [GitHub Issues](https://github.com/GuruOz/Purview-DLP-Logic-Visualiser/issues).
+Bug reports and feature requests are welcome via [GitHub Issues](https://github.com/GuruOz/microsoft-purview-playground/issues).
 
 ## License
 
