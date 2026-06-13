@@ -45,6 +45,10 @@
                         Rule Summary
                     </a>
                     <span class="text-gray-300 dark:text-gray-600">|</span>
+                    <a href="regex.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
+                        Regex Builder
+                    </a>
+                    <span class="text-gray-300 dark:text-gray-600">|</span>
                     <span class="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 cursor-default">
                         Settings
                     </span>
@@ -106,54 +110,6 @@
             <div id="settingsToastContainer"></div>
         </div>
 
-        <!-- AI Regex Builder -->
-        <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto space-y-4">
-            <div class="border-b border-gray-200 dark:border-gray-700 pb-2">
-                <h2 class="text-lg font-bold text-gray-800 dark:text-white">AI Regex Builder</h2>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Describe what you want to match (paste example strings too), generate a .NET-compatible regex for Purview conditions like "Subject matches patterns", then chat to refine it. Uses the AI provider and API key configured above.</p>
-            </div>
-
-            <div>
-                <label for="regexGoalInput" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">What should the regex match?</label>
-                <textarea id="regexGoalInput" rows="3" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500" placeholder="e.g. Match Australian tax file numbers like 123 456 782 or 123-456-782, but not plain 9-digit numbers without separators"></textarea>
-                <div class="flex gap-2 mt-2">
-                    <button id="regexStartBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-semibold shadow transition-colors">Generate Regex</button>
-                    <button id="regexClearBtn" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Start Over</button>
-                </div>
-                <div id="regexStatus" class="text-xs mt-2 font-semibold text-gray-500 dark:text-gray-400" role="status" aria-live="polite"></div>
-            </div>
-
-            <div id="regexChatThread" class="flex flex-col gap-2 max-h-80 overflow-y-auto custom-scrollbar" aria-label="Regex builder conversation"></div>
-
-            <div id="regexRefineRow" class="hidden space-y-3">
-                <!-- Current regex — always visible, editable, used by the tester -->
-                <div class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded p-3 space-y-2">
-                    <div class="flex items-center justify-between gap-2">
-                        <label for="regexCurrentPattern" class="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wide">Current Regex</label>
-                        <button id="regexCopyCurrentBtn" type="button" class="text-[10px] font-bold uppercase bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 px-2 py-0.5 rounded hover:bg-indigo-200 dark:hover:bg-indigo-900/70 transition-colors">Copy</button>
-                    </div>
-                    <textarea id="regexCurrentPattern" rows="2" spellcheck="false" class="w-full font-mono text-sm border border-indigo-300 dark:border-indigo-700 bg-white dark:bg-gray-900 text-indigo-900 dark:text-indigo-200 p-2 rounded focus:outline-none focus:border-indigo-500 resize-none" placeholder="The generated regex will appear here — you can edit it directly"></textarea>
-                    <p class="text-[10px] text-indigo-600/70 dark:text-indigo-400/70">You can edit this pattern directly. The tester below always uses this field.</p>
-                </div>
-
-                <!-- Refine via chat -->
-                <div class="flex gap-2">
-                    <textarea id="regexChatInput" rows="1" class="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500" placeholder="Refine it… e.g. also allow dots as separators"></textarea>
-                    <button id="regexSendBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded text-sm font-semibold shadow transition-colors">Send</button>
-                </div>
-
-                <!-- Live tester -->
-                <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
-                    <label for="regexTestInput" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Test against a sample string</label>
-                    <div class="flex items-center gap-3">
-                        <input type="text" id="regexTestInput" class="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-xs font-mono focus:outline-none focus:border-indigo-500" placeholder="Paste a sample string...">
-                        <span id="regexTestResult" class="text-xs font-bold" aria-live="polite"></span>
-                    </div>
-                    <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-1">Tested with the browser's JS engine — verify .NET-specific syntax in PowerShell before deploying to Purview.</p>
-                </div>
-            </div>
-        </div>
-
         <div class="bg-white dark:bg-gray-800 p-6 rounded shadow-sm border border-gray-200 dark:border-gray-700 max-w-2xl mx-auto space-y-4">
             <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2">
                 <h2 class="text-lg font-bold text-gray-800 dark:text-white">Live Debug Logs</h2>
@@ -185,7 +141,6 @@
     <script src="js/version.js"></script>
     <script src="js/logger.js"></script>
     <script src="js/nl-generator.js"></script>
-    <script src="js/regex-builder.js"></script>
     <script src="js/settings-ui.js"></script>
     <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
     <footer class="text-center text-xs text-gray-400 dark:text-gray-600 py-3" role="contentinfo">

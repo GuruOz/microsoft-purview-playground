@@ -1,6 +1,8 @@
-// AI Regex Builder
-// Chat-based regex crafting on the Settings page. Reuses the AI provider and
-// API key configured for Natural Language explanations (window.nlSettings).
+// AI Regex Builder (regex.html)
+// Left pane: chat-based regex crafting. Reuses the AI provider and API key
+// configured for Natural Language explanations (window.nlSettings).
+// Right pane: a standalone Regex Tester with its own manual input — not
+// auto-populated from the chat (user can push a generated regex in via a button).
 // All AI output is rendered via textContent — never innerHTML.
 
 const REGEX_SYSTEM_PROMPT = `You are a regular expression assistant. Your ONLY function is to generate and refine regular expressions for Microsoft Purview DLP policies.
@@ -15,7 +17,6 @@ Rules you must follow without exception:
 
 let regexChatMessages = []; // [{ role: 'user'|'assistant', content }]
 let regexChatPending = false;
-let currentRegexPattern = ''; // the latest generated pattern, shown in the editable field
 
 // --- Provider-agnostic chat call --------------------------------------------
 
@@ -24,7 +25,7 @@ window.callAIChat = async function(messages) {
     const provider = settings.aiProvider;
     const apiKey = settings.aiApiKey;
     if (!apiKey) {
-        throw new Error('AI API Key is missing. Configure it in the Natural Language Processing section above, then click Save Settings.');
+        throw new Error('AI API Key is missing. Open Settings, choose "AI Generated" mode, enter your key, and click Save Settings.');
     }
 
     if (provider === 'gemini') {
@@ -107,16 +108,6 @@ function regexStatus(message, isError) {
         : 'text-gray-500 dark:text-gray-400');
 }
 
-function lastGeneratedRegex() {
-    for (let i = regexChatMessages.length - 1; i >= 0; i--) {
-        if (regexChatMessages[i].role === 'assistant') {
-            const rx = window.extractRegexFromReply(regexChatMessages[i].content);
-            if (rx) return rx;
-        }
-    }
-    return null;
-}
-
 // --- Rendering (DOM nodes + textContent only; AI output is untrusted) --------
 
 function renderRegexChat() {
@@ -142,22 +133,43 @@ function renderRegexChat() {
             }
             if (rx) {
                 const box = document.createElement('div');
-                box.className = 'flex items-center gap-2 bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-800 rounded p-2';
+                box.className = 'bg-white dark:bg-gray-900 border border-indigo-200 dark:border-indigo-800 rounded p-2 space-y-2';
+
                 const code = document.createElement('code');
-                code.className = 'font-mono text-[11px] text-indigo-700 dark:text-indigo-300 break-all flex-1';
+                code.className = 'block font-mono text-[11px] text-indigo-700 dark:text-indigo-300 break-all';
                 code.textContent = rx;
+                box.appendChild(code);
+
+                const actions = document.createElement('div');
+                actions.className = 'flex gap-2';
+
                 const copyBtn = document.createElement('button');
                 copyBtn.type = 'button';
                 copyBtn.textContent = 'Copy';
-                copyBtn.className = 'shrink-0 text-[10px] font-bold uppercase bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded hover:bg-indigo-200 dark:hover:bg-indigo-900/70 transition-colors';
+                copyBtn.className = 'text-[10px] font-bold uppercase bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 px-2 py-1 rounded hover:bg-indigo-200 dark:hover:bg-indigo-900/70 transition-colors';
                 copyBtn.onclick = () => {
                     navigator.clipboard.writeText(rx).then(() => {
                         copyBtn.textContent = 'Copied!';
                         setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
                     }).catch(() => prompt('Copy this regex:', rx));
                 };
-                box.appendChild(code);
-                box.appendChild(copyBtn);
+
+                const testBtn = document.createElement('button');
+                testBtn.type = 'button';
+                testBtn.textContent = 'Send to tester →';
+                testBtn.className = 'text-[10px] font-bold uppercase bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors';
+                testBtn.onclick = () => {
+                    const field = document.getElementById('regexTestPattern');
+                    if (field) {
+                        field.value = rx;
+                        updateRegexTester();
+                        field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                };
+
+                actions.appendChild(copyBtn);
+                actions.appendChild(testBtn);
+                box.appendChild(actions);
                 bubble.appendChild(box);
             }
         }
@@ -167,31 +179,56 @@ function renderRegexChat() {
     thread.scrollTop = thread.scrollHeight;
     const refineRow = document.getElementById('regexRefineRow');
     if (refineRow) refineRow.classList.toggle('hidden', regexChatMessages.length === 0);
-    updateRegexTester();
 }
 
-// --- Live tester (JS RegExp — close to .NET for common patterns) -------------
+// --- Standalone tester (independent of the AI chat) --------------------------
+// Reads the user-entered pattern from #regexTestPattern, applies the optional
+// ignore-case flag, and reports matches against the sample string. Uses the
+// browser's JS engine (covers most patterns; .NET-only syntax is flagged).
 
 function updateRegexTester() {
-    const patternField = document.getElementById('regexCurrentPattern');
+    const patternEl = document.getElementById('regexTestPattern');
     const input = document.getElementById('regexTestInput');
     const result = document.getElementById('regexTestResult');
-    if (!input || !result) return;
+    const detail = document.getElementById('regexMatchDetail');
+    const ignoreCaseEl = document.getElementById('regexIgnoreCase');
+    if (!patternEl || !input || !result) return;
 
-    // Use the editable pattern field if present and non-empty; fall back to chat extraction
-    const rx = (patternField && patternField.value.trim()) ? patternField.value.trim() : lastGeneratedRegex();
+    const rx = patternEl.value.trim();
     const sample = input.value;
+
+    if (detail) detail.textContent = '';
     if (!rx || !sample) {
-        result.textContent = '';
+        result.textContent = 'Enter a pattern and a sample string';
+        result.className = 'text-sm font-bold text-gray-400';
         return;
     }
+
     try {
-        const matched = new RegExp(rx).test(sample);
-        result.textContent = matched ? 'Match' : 'No match';
-        result.className = 'text-xs font-bold ' + (matched ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400');
+        const flags = 'g' + (ignoreCaseEl && ignoreCaseEl.checked ? 'i' : '');
+        const re = new RegExp(rx, flags);
+        const matches = Array.from(sample.matchAll(re)).map(m => m[0]).filter(s => s.length > 0);
+
+        if (matches.length > 0) {
+            result.textContent = `Match (${matches.length} found)`;
+            result.className = 'text-sm font-bold text-green-600 dark:text-green-400';
+            if (detail) {
+                const shown = matches.slice(0, 8).map(s => `"${s}"`).join(', ');
+                detail.textContent = 'Matched: ' + shown + (matches.length > 8 ? ', …' : '');
+            }
+        } else {
+            result.textContent = 'No match';
+            result.className = 'text-sm font-bold text-red-500 dark:text-red-400';
+            if (detail && !(ignoreCaseEl && ignoreCaseEl.checked) && /[a-z]/.test(sample) && /\[A-Z\]|\[[A-Z]/.test(rx)) {
+                detail.textContent = 'Tip: the pattern looks case-sensitive. Try enabling "Ignore case".';
+                detail.className = 'text-xs font-mono text-yellow-600 dark:text-yellow-400 break-words';
+            } else if (detail) {
+                detail.className = 'text-xs font-mono text-gray-600 dark:text-gray-300 break-words';
+            }
+        }
     } catch (_e) {
-        result.textContent = 'Pattern uses .NET-only syntax — test in PowerShell';
-        result.className = 'text-xs font-bold text-yellow-600 dark:text-yellow-400';
+        result.textContent = 'Invalid or .NET-only syntax — verify in PowerShell';
+        result.className = 'text-sm font-bold text-yellow-600 dark:text-yellow-400';
     }
 }
 
@@ -207,21 +244,12 @@ async function sendToAI(userContent) {
 
     try {
         const reply = await window.callAIChat(regexChatMessages);
-        // Guard: reject replies that contain no code block (likely a jailbreak deflection
-        // or a malformed response that won't give the user a usable regex)
+        regexChatMessages.push({ role: 'assistant', content: reply });
+        // Guard: a reply with no code block is likely a refusal (jailbreak deflection)
+        // or malformed — surface it but tell the user no pattern was produced.
         if (!window.extractRegexFromReply(reply)) {
-            // Still show the message to the user (it may be a refusal worth reading)
-            // but do not update the regex field
-            regexChatMessages.push({ role: 'assistant', content: reply });
             regexStatus('The AI did not return a regex pattern. Try rephrasing your request.', true);
         } else {
-            regexChatMessages.push({ role: 'assistant', content: reply });
-            const newPattern = window.extractRegexFromReply(reply);
-            if (newPattern) {
-                currentRegexPattern = newPattern;
-                const field = document.getElementById('regexCurrentPattern');
-                if (field) field.value = currentRegexPattern;
-            }
             regexStatus('', false);
         }
         if (window.logEvent) window.logEvent('info', 'regex-builder', 'AI regex reply received', { length: reply.length });
@@ -255,17 +283,11 @@ window.sendRegexRefinement = function() {
 };
 
 window.clearRegexChat = function() {
+    // Only resets the AI conversation. The Regex Tester is independent and left intact.
     regexChatMessages = [];
-    currentRegexPattern = '';
     regexStatus('', false);
     const goalEl = document.getElementById('regexGoalInput');
     if (goalEl) goalEl.value = '';
-    const patternField = document.getElementById('regexCurrentPattern');
-    if (patternField) patternField.value = '';
-    const testEl = document.getElementById('regexTestInput');
-    if (testEl) testEl.value = '';
-    const testResult = document.getElementById('regexTestResult');
-    if (testResult) testResult.textContent = '';
     renderRegexChat();
 };
 
@@ -291,20 +313,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const patternField = document.getElementById('regexCurrentPattern');
-    if (patternField) patternField.addEventListener('input', updateRegexTester);
+    const testPattern = document.getElementById('regexTestPattern');
+    if (testPattern) testPattern.addEventListener('input', updateRegexTester);
 
-    const copyCurrentBtn = document.getElementById('regexCopyCurrentBtn');
-    if (copyCurrentBtn) {
-        copyCurrentBtn.onclick = () => {
-            const val = patternField && patternField.value.trim();
-            if (!val) return;
-            navigator.clipboard.writeText(val).then(() => {
-                copyCurrentBtn.textContent = 'Copied!';
-                setTimeout(() => { copyCurrentBtn.textContent = 'Copy'; }, 1500);
-            }).catch(() => prompt('Copy this regex:', val));
-        };
-    }
+    const ignoreCase = document.getElementById('regexIgnoreCase');
+    if (ignoreCase) ignoreCase.addEventListener('change', updateRegexTester);
 
     const testInput = document.getElementById('regexTestInput');
     if (testInput) testInput.addEventListener('input', updateRegexTester);

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.3.0] - 2026-06-13
+
+### Changed
+- **AI Regex Builder moved to its own page** (`regex.html`, linked in the main nav) so it is no longer buried in Settings
+- The Regex Tester is now a standalone panel with its own manual pattern input, decoupled from the AI chat — no auto-population, the chat and tester are independent
+
+### Added
+- "Ignore case" toggle in the Regex Tester (adds the equivalent of the .NET `(?i)` flag)
+- Match details: the tester now lists the matched substrings, and hints when a non-match is likely a case-sensitivity issue
+- "Send to tester" button on each AI-generated regex to push it into the tester with one click
+
+### Fixed
+- Regex Tester is now reachable without first using the AI chat (previously the test field was hidden inside the chat refine row)
+
 ## [1.2.0] - 2026-06-13
 
 ### Changed
