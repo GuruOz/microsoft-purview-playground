@@ -224,3 +224,78 @@ describe('evaluatePostfix – error handling', () => {
         expect(() => window.evaluatePostfix(postfix, { A: true, B: true })).toThrow();
     });
 });
+
+// ---------------------------------------------------------------------------
+describe('expandTokenSimVars', () => {
+    test('plain variable maps to itself', () => {
+        expect(window.expandTokenSimVars(mkVar('Attachment is password protected')))
+            .toEqual(['Attachment is password protected']);
+    });
+
+    test('multi-property token expands to one key per property', () => {
+        expect(window.expandTokenSimVars(mkVar('Sender is: alice, bob')))
+            .toEqual(['Sender is: alice', 'Sender is: bob']);
+    });
+
+    test('Content contains with Both context expands to Message and Attachment keys', () => {
+        expect(window.expandTokenSimVars(mkVar('Content contains: SSN', { targetContext: 'Both' })))
+            .toEqual(['[Message] Content contains: SSN', '[Attachment] Content contains: SSN']);
+    });
+
+    test('Content contains with Message context expands to Message key only', () => {
+        expect(window.expandTokenSimVars(mkVar('Content contains: SSN', { targetContext: 'Message' })))
+            .toEqual(['[Message] Content contains: SSN']);
+    });
+});
+
+// ---------------------------------------------------------------------------
+describe('findTriggerAssignment', () => {
+    test('single variable must be true', () => {
+        const result = window.findTriggerAssignment([mkVar('A')]);
+        expect(result).toEqual({ A: true });
+    });
+
+    test('NOT A requires A to be false', () => {
+        const result = window.findTriggerAssignment([mkOp('NOT'), mkVar('A')]);
+        expect(result).toEqual({ A: false });
+    });
+
+    test('A AND NOT B requires A true and B false', () => {
+        const tokens = [mkVar('A'), mkOp('AND'), mkOp('NOT'), mkVar('B')];
+        const result = window.findTriggerAssignment(tokens);
+        expect(result).toEqual({ A: true, B: false });
+    });
+
+    test('A OR B returns the minimal assignment (a single true)', () => {
+        const tokens = [mkVar('A'), mkOp('OR'), mkVar('B')];
+        const result = window.findTriggerAssignment(tokens);
+        expect(Object.values(result).filter(Boolean)).toHaveLength(1);
+    });
+
+    test('contradiction A AND NOT A returns null', () => {
+        const tokens = [mkVar('A'), mkOp('AND'), mkOp('NOT'), mkVar('A')];
+        expect(window.findTriggerAssignment(tokens)).toBeNull();
+    });
+
+    test('assignment found actually satisfies the expression', () => {
+        const tokens = [
+            mkOp('('), mkVar('A'), mkOp('OR'), mkVar('B'), mkOp(')'),
+            mkOp('AND NOT'), mkVar('C')
+        ];
+        const result = window.findTriggerAssignment(tokens);
+        expect(result).not.toBeNull();
+        expect(window.evaluatePostfix(window.infixToPostfix(tokens), result)).toBe(true);
+        expect(result.C).toBe(false);
+    });
+
+    test('Content contains (Both) is satisfiable via one expanded key', () => {
+        const tokens = [mkVar('Content contains: SSN', { targetContext: 'Both' })];
+        const result = window.findTriggerAssignment(tokens);
+        expect(result).not.toBeNull();
+        expect(window.evaluatePostfix(window.infixToPostfix(tokens), result)).toBe(true);
+    });
+
+    test('empty token list returns null', () => {
+        expect(window.findTriggerAssignment([])).toBeNull();
+    });
+});

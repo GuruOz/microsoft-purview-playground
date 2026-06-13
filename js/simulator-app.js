@@ -8,12 +8,7 @@ function registerEventHandlers() {
     const clearSimBtn = document.getElementById('clearSimBtn');
     if (clearSimBtn) {
         clearSimBtn.onclick = () => {
-            // clear simulator checkboxes (except user override)
-            const checkBoxes = document.querySelectorAll('.sim-var-item input[type="checkbox"]');
-            checkBoxes.forEach(cb => {
-                cb.checked = false;
-                cb.dispatchEvent(new Event('change'));
-            });
+            resetSimulatorInputs();
             const result = document.getElementById('simulationResult');
             if (result) result.innerHTML = '';
         };

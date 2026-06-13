@@ -159,7 +159,7 @@ window.exportSelectedPDF = function() {
     // Create header
     let contentHtml = `
         <div style="font-family: Arial, sans-serif; color: #333;">
-            <h1 style="text-align: center; color: #4F46E5; border-bottom: 2px solid #E5E7EB; padding-bottom: 10px; margin-bottom: 20px;">Purview DLP Logic Visualizer - Rule Summary</h1>
+            <h1 style="text-align: center; color: #4F46E5; border-bottom: 2px solid #E5E7EB; padding-bottom: 10px; margin-bottom: 20px;">Purview Playground - Rule Summary</h1>
             <p style="text-align: right; font-size: 12px; color: #6B7280; margin-bottom: 30px;">Generated on: ${new Date().toLocaleString()}</p>
         </div>
     `;

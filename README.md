@@ -1,4 +1,6 @@
-# Purview DLP Logic Visualizer
+# Purview Playground
+
+> Build, visualize, and battle-test Microsoft Purview DLP policy logic — right in your browser.
 
 An interactive browser tool for building, visualizing, and testing Microsoft Purview Data Loss Prevention policy logic — without touching a live tenant.
 
@@ -112,3 +114,7 @@ Bug reports and feature requests are welcome via [GitHub Issues](https://github.
 ## License
 
 MIT
+
+## Disclaimer
+
+Purview Playground is a community tool and is **not affiliated with, endorsed by, or supported by Microsoft**. "Microsoft Purview" is a trademark of Microsoft Corporation, used here descriptively to indicate compatibility.

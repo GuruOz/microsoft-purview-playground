@@ -100,6 +100,74 @@ window.evaluatePostfix = function(postfix, truthValues) {
     return stack[0];
 };
 
+// Expand a variable token into the simulator-state keys it reads.
+// Mirrors the lookup logic in evaluatePostfix so solvers and the simulator UI agree.
+window.expandTokenSimVars = function(token) {
+    const targetCtx = token.targetContext || 'Both';
+    const parts = token.val.split(/:\s*(.*)/);
+    const keys = [];
+
+    if (parts.length > 1 && parts[1]) {
+        const base = parts[0];
+        const props = parts[1].split(/,\s*/);
+        props.forEach(prop => {
+            if (base === 'Content contains' || base === 'Content is not labeled') {
+                if (targetCtx === 'Both') {
+                    keys.push(`[Message] ${base}: ${prop}`, `[Attachment] ${base}: ${prop}`);
+                } else {
+                    keys.push(`[${targetCtx}] ${base}: ${prop}`);
+                }
+            } else {
+                keys.push(`${base}: ${prop}`);
+            }
+        });
+    } else {
+        if (token.val === 'Content contains' || token.val === 'Content is not labeled') {
+            if (targetCtx === 'Both') {
+                keys.push(`[Message] ${token.val}`, `[Attachment] ${token.val}`);
+            } else {
+                keys.push(`[${targetCtx}] ${token.val}`);
+            }
+        } else {
+            keys.push(token.val);
+        }
+    }
+    return keys;
+};
+
+// Find simulator input values that make the rule expression evaluate to true.
+// Returns { simVarKey: boolean } using the fewest true values possible,
+// or null if the rule can never match (or has too many variables to solve).
+window.findTriggerAssignment = function(tokens) {
+    const varSet = new Set();
+    tokens.forEach(t => {
+        if (t.type === 'variable') window.expandTokenSimVars(t).forEach(k => varSet.add(k));
+    });
+    const vars = Array.from(varSet);
+    if (vars.length === 0 || vars.length > 16) return null;
+
+    const postfix = window.infixToPostfix(tokens);
+    const popcount = n => {
+        let c = 0;
+        while (n) { c += n & 1; n >>= 1; }
+        return c;
+    };
+    const candidates = [];
+    for (let i = 0; i < (1 << vars.length); i++) candidates.push(i);
+    candidates.sort((a, b) => popcount(a) - popcount(b));
+
+    for (const mask of candidates) {
+        const truthValues = {};
+        vars.forEach((v, idx) => { truthValues[v] = !!(mask & (1 << idx)); });
+        try {
+            if (window.evaluatePostfix(postfix, truthValues)) return truthValues;
+        } catch (_e) {
+            return null; // malformed expression — nothing can trigger it
+        }
+    }
+    return null;
+};
+
 window.generateEvaluationTrace = function(tokens, currentValues) {
     let traceTokens = [];
     let prev = null;

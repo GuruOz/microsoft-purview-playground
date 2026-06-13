@@ -49,6 +49,8 @@ const appGlobals = {
     evaluatePostfix: 'readonly',
     generateEvaluationTrace: 'readonly',
     generateDetailedEvaluationHtml: 'readonly',
+    expandTokenSimVars: 'readonly',
+    findTriggerAssignment: 'readonly',
     // state.js
     generateId: 'readonly',
     saveState: 'readonly',
@@ -94,6 +96,13 @@ const appGlobals = {
     runSimulation: 'readonly',
     updateSimulatorVariables: 'readonly',
     filterSimulatorVariables: 'readonly',
+    resetSimulatorInputs: 'readonly',
+    // regex-builder.js
+    callAIChat: 'readonly',
+    extractRegexFromReply: 'readonly',
+    startRegexChat: 'readonly',
+    sendRegexRefinement: 'readonly',
+    clearRegexChat: 'readonly',
     // parser.js
     parsePurviewJSON: 'readonly',
     parseVisualizerJSON: 'readonly',
