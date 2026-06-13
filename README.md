@@ -28,7 +28,7 @@ This tool gives Purview engineers a visual rule builder where they can compose c
 
 ## Quick Start
 
-1. **Open the tool** — visit [https://guruoz.github.io/purview-dlp-logic-visualiser/](https://guruoz.github.io/purview-dlp-logic-visualiser/)
+1. **Open the tool** — visit [https://guruoz.github.io/microsoft-purview-playground/](https://guruoz.github.io/microsoft-purview-playground/)
 2. **Build a rule** — drag a condition from the left-hand panel onto the canvas, then add AND/OR/NOT operators to compose the logic; or click "Load Example" to start from a pre-built scenario
 3. **Run the simulator** — navigate to the **Simulator** tab, toggle conditions on or off, and observe which rules fire and what actions are applied
 
