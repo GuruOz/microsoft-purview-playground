@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dlp-visualizer-v1.3.0';
+const CACHE_NAME = 'dlp-visualizer-v1.4.0';
 
 const ASSETS = [
     '/purview-dlp-logic-visualiser/',
@@ -9,6 +9,7 @@ const ASSETS = [
     '/purview-dlp-logic-visualiser/regex.html',
     '/purview-dlp-logic-visualiser/css/styles.css',
     '/purview-dlp-logic-visualiser/js/version.js',
+    '/purview-dlp-logic-visualiser/js/nav.js',
     '/purview-dlp-logic-visualiser/js/logger.js',
     '/purview-dlp-logic-visualiser/js/constants.js',
     '/purview-dlp-logic-visualiser/js/state.js',

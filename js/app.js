@@ -571,13 +571,20 @@ window.initApp = function() {
     }
 
     // Modal Import/Export Actions
+    function hidePurviewExportWarning() {
+        const w = document.getElementById('purviewExportWarning');
+        if (w) w.classList.add('hidden');
+    }
+
     window.toggleModal = function() {
         const modal = document.getElementById('dataModal');
         modal.classList.toggle('hidden');
         document.getElementById('modalError').classList.add('hidden');
+        hidePurviewExportWarning();
     };
 
     window.importPurviewJSON = function() {
+        hidePurviewExportWarning();
         try {
             const rawText = document.getElementById('jsonPayload').value;
             const res = parsePurviewJSON(rawText, variables);
@@ -596,6 +603,7 @@ window.initApp = function() {
     };
 
     window.importVisualizerJSON = function() {
+        hidePurviewExportWarning();
         try {
             const rawText = document.getElementById('jsonPayload').value;
             const res = parseVisualizerJSON(rawText);
@@ -617,6 +625,7 @@ window.initApp = function() {
         const payload = serializeVisualizerJSON(policies, variables);
         document.getElementById('jsonPayload').value = payload;
         document.getElementById('modalInfo').classList.add('hidden');
+        hidePurviewExportWarning();
     };
 
     window.exportToPurviewJSON = function() {
@@ -626,6 +635,8 @@ window.initApp = function() {
         info.textContent = 'Purview PowerShell JSON ready. Copy and use with New-DlpComplianceRule in your PowerShell script.';
         info.classList.remove('hidden');
         document.getElementById('modalError').classList.add('hidden');
+        const warning = document.getElementById('purviewExportWarning');
+        if (warning) warning.classList.remove('hidden');
     };
 
     window.addTokenFromClick = function(type, val) {

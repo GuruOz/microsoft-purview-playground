@@ -161,6 +161,45 @@ function setSimVar(v, val) {
     simulatorState[v] = val;
     // Sync every rendered copy of this variable (Email view repeats vars across categories)
     document.querySelectorAll(`.sim-toggle[data-var="${CSS.escape(v)}"]`).forEach(w => refreshSimToggle(w, val));
+    renderSelectedConditions();
+}
+
+// Summary row of every condition currently set to True, with one-click removal.
+function renderSelectedConditions() {
+    const panel = document.getElementById('simSelectedPanel');
+    const chips = document.getElementById('simSelectedChips');
+    if (!panel || !chips) return;
+
+    const selected = Object.keys(simulatorState)
+        .filter(k => k !== '_USER_OVERRIDE_' && simulatorState[k] === true)
+        .sort((a, b) => a.localeCompare(b));
+
+    chips.innerHTML = '';
+    if (selected.length === 0) {
+        panel.classList.add('hidden');
+        return;
+    }
+    panel.classList.remove('hidden');
+
+    selected.forEach(v => {
+        const chip = document.createElement('span');
+        chip.className = 'inline-flex items-center gap-1 bg-green-600 text-white text-[10px] font-semibold pl-2 pr-1 py-0.5 rounded-full max-w-full';
+
+        const label = document.createElement('span');
+        label.className = 'break-words min-w-0';
+        label.textContent = v;
+
+        const x = document.createElement('button');
+        x.type = 'button';
+        x.className = 'shrink-0 w-4 h-4 flex items-center justify-center rounded-full hover:bg-green-800 leading-none font-bold';
+        x.textContent = '×';
+        x.setAttribute('aria-label', `Clear "${v}"`);
+        x.onclick = () => setSimVar(v, false);
+
+        chip.appendChild(label);
+        chip.appendChild(x);
+        chips.appendChild(chip);
+    });
 }
 
 function createSimToggle(v) {
@@ -352,6 +391,7 @@ function renderSimulatorUI(vars, channel) {
 
     filterSimulatorVariables();
     updateScrollHint();
+    renderSelectedConditions();
 }
 
 function evaluatePhase(parsedRules, ignoreServerConditions) {

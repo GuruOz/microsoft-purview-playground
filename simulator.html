@@ -27,36 +27,11 @@
         
         <!-- Header -->
         <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700 flex flex-wrap justify-between items-center gap-y-3">
-            <div class="flex items-center gap-3">
-                <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
-                <h1 class="text-xl font-bold dark:text-white">Purview DLP Event Simulator</h1>
-            </div>
+            <div id="appBrand" data-page="Event Simulator"></div>
             
             <div class="flex flex-wrap gap-x-6 gap-y-3 items-center">
                 <!-- Navigation -->
-                <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold">
-                    <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                        Rule Builder
-                    </a>
-                    <span class="text-gray-300 dark:text-gray-600">|</span>
-                    <span class="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 cursor-default">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        Simulator Tab
-                    </span>
-                    <span class="text-gray-300 dark:text-gray-600">|</span>
-                    <a href="summary.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
-                        Rule Summary
-                    </a>
-                    <span class="text-gray-300 dark:text-gray-600">|</span>
-                    <a href="regex.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
-                        Regex Builder
-                    </a>
-                    <span class="text-gray-300 dark:text-gray-600">|</span>
-                    <a href="settings.html" class="text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5">
-                        Settings
-                    </a>
-                </nav>
+                <nav id="appNav" data-active="simulator" class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold"></nav>
                 
                 <button onclick="shareState()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded text-sm font-semibold shadow flex items-center gap-1.5" title="Copy Shareable Link">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
@@ -90,6 +65,10 @@
                 <div>
                     <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-2 border-b border-gray-200 dark:border-gray-700 pb-1">2. Event Conditions</h2>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Set each condition to <span class="font-bold text-green-600 dark:text-green-400">True</span> or <span class="font-bold text-red-500 dark:text-red-400">False</span> to describe the event you want to test. Rules using NOT need their condition set to False to match.</p>
+                    <div id="simSelectedPanel" class="hidden mb-2 p-2 rounded border border-green-300 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+                        <div class="text-[10px] font-bold text-green-800 dark:text-green-400 uppercase tracking-wide mb-1.5">Conditions set to True (click &times; to clear)</div>
+                        <div id="simSelectedChips" class="flex flex-wrap gap-1.5"></div>
+                    </div>
                     <div class="flex gap-2 mb-2">
                         <input type="text" id="simSearchInput" placeholder="Search conditions…" class="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-xs focus:outline-none focus:border-indigo-500">
                         <button id="simSortBtn" title="Sort A–Z" class="shrink-0 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 rounded text-xs font-bold hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">A–Z</button>
@@ -150,6 +129,7 @@
     </script>
     <!-- Boot module -->
     <script src="js/version.js"></script>
+    <script src="js/nav.js"></script>
     <script src="js/logger.js"></script>
     <script src="js/constants.js"></script>
     <script src="js/state.js"></script>
