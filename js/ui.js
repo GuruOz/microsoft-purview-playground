@@ -646,9 +646,10 @@ function generateTable() {
 
     let headHtml = '<tr>';
     uniqueVars.forEach(v => {
-        headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 text-xs font-semibold whitespace-normal break-words min-w-[100px] max-w-[150px] text-center bg-gray-50 dark:bg-gray-800 align-top">${window.escapeHtml(v)}</th>`;
+        let formattedV = window.escapeHtml(v).replace(/,\s*/g, ',<br>');
+        headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 text-xs font-semibold whitespace-nowrap min-w-[150px] text-center bg-gray-50 dark:bg-gray-800 align-top">${formattedV}</th>`;
     });
-    headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 bg-blue-50 dark:bg-gray-800 w-full text-xs font-semibold align-top text-center">Evaluation Trace</th>`;
+    headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 bg-blue-50 dark:bg-gray-800 text-xs font-semibold align-top text-center w-full">Evaluation Trace</th>`;
     headHtml += `<th scope="col" class="border border-gray-300 dark:border-gray-600 p-2 bg-gray-800 dark:bg-gray-600 text-white font-bold text-center w-20 text-xs align-top">FINAL</th></tr>`;
     thead.innerHTML = headHtml;
 

@@ -181,6 +181,7 @@ window.findTriggerAssignment = function(tokens) {
 
 window.generateEvaluationTrace = function(tokens, currentValues) {
     let traceTokens = [];
+    let tooltips = [];
     let prev = null;
     
     for (let t of tokens) {
@@ -224,6 +225,9 @@ window.generateEvaluationTrace = function(tokens, currentValues) {
                 }
             }
             traceTokens.push(isTrue ? 'T' : 'F');
+            let tooltip = t.val;
+            if (tooltip.length > 50) tooltip = tooltip.substring(0, 47) + '...';
+            tooltips.push(window.escapeHtml(tooltip));
         }
         prev = t;
     }
@@ -234,8 +238,17 @@ window.generateEvaluationTrace = function(tokens, currentValues) {
     trace = trace.replace(/NOT\((T|F)\s+(AND|OR)\s+(T|F)\)/g, (m, p1, op, p2) => `NOT(${p1} ${op} ${p2})=${!(op === 'AND' ? (p1==='T' && p2==='T') : (p1==='T' || p2==='T')) ? 'T' : 'F'}`);
     trace = trace.replace(/NOT\((T|F)\)/g, (m, p1) => `NOT(${p1})=${p1 === 'F' ? 'T' : 'F'}`);
     trace = trace.replace(/NOT (T|F)/g, (m, p1) => `NOT(${p1})=${p1 === 'F' ? 'T' : 'F'}`);
-    trace = trace.replace(/\bT\b/g, '<span class="text-green-600 font-black">T</span>');
-    trace = trace.replace(/\bF\b/g, '<span class="text-red-600 font-black">F</span>');
+    
+    let varIndex = 0;
+    trace = trace.replace(/\b(T|F)\b/g, (match, p1, offset, string) => {
+        let color = p1 === 'T' ? 'text-green-600' : 'text-red-600';
+        if (offset > 0 && string[offset - 1] === '=') {
+            return `<span class="${color} font-black">${p1}</span>`;
+        } else {
+            let tooltip = tooltips[varIndex++] || '';
+            return `<span class="${color} font-black cursor-help border-b-2 border-dotted border-gray-400 dark:border-gray-500 hover:opacity-80 transition-opacity" title="Condition: ${tooltip}">${p1}</span>`;
+        }
+    });
     return trace;
 };
 
