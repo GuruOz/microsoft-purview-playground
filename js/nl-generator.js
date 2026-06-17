@@ -110,15 +110,24 @@ window.generateAITraceExplanation = async function(rule, traceString, currentVal
         }
     });
 
-    const promptText = `Explain this Microsoft Purview DLP truth table evaluation row in one clear natural language sentence. Do not use code blocks. Truncate very long variable names with "or ...".
+    const promptText = `You are an expert Microsoft Purview Data Loss Prevention (DLP) administrator.
+Your task is to explain a specific truth table evaluation row in one clear, natural language sentence.
+
+Microsoft Purview Logic Rules:
+- Conditions are combined using logical AND, OR, and NOT operators.
+- "NOT" inverts the condition (e.g., if a condition is False, NOT makes it True).
+- The final result dictates whether the rule's protective actions will trigger.
 
 Variables state:
 ${varsText.join('\n')}
 
 Logical Trace: ${traceString}
-Final Result: ${finalResult ? 'True' : 'False'}
+Final Result: ${finalResult ? 'True (Rule Triggers)' : 'False (Rule Does Not Trigger)'}
 
-Provide a single human-readable sentence explaining why the final result is what it is based on the variable states.`;
+Instructions:
+1. Provide a single human-readable sentence explaining why the final result is what it is based on the variable states.
+2. Truncate very long variable names with "or ...".
+3. Do not use code blocks, markdown formatting, or bullet points. Just return the pure text description.`;
 
     const provider = window.nlSettings.aiProvider;
     const apiKey = window.nlSettings.aiApiKey;
