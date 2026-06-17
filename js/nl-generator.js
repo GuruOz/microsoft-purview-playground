@@ -129,11 +129,13 @@ Final Result: ${finalResult ? 'True (Rule Triggers)' : 'False (Rule Does Not Tri
 
 Instructions:
 1. Explain the trace by providing a structured layout. Do NOT provide a paragraph.
-2. First, list each variable on its own line using this format: "Variable A: [Truncated Variable Name] -> True/False". If the variable is inside a NOT() operator, explicitly show it like this: "Variable B: NOT([Truncated Variable Name]) -> NOT(True/False) -> False/True".
-3. Next, provide the literal trace on its own line: "Trace on screen: [Insert Logical Trace Here]".
-4. Finally, state the final result: "Final Result: True/False".
-5. Truncate long variable names to be concise (e.g., use "...or...").
-6. Do not use code blocks or markdown formatting. Return plain text matching the requested structure.`;
+2. List each variable on its own line using this format: "Variable A: [Truncated Variable Name] -> True/False". If the variable is inside a NOT() operator, explicitly show it like this: "Variable B: NOT([Truncated Variable Name]) -> NOT(True/False) -> False/True".
+3. Add an empty blank line.
+4. Provide the literal trace on its own line: "Trace on screen: [Insert Logical Trace Here]".
+5. Add an empty blank line.
+6. State the final result: "Final Result: True/False".
+7. Truncate long variable names to be concise (e.g., use "...or...").
+8. Do not use code blocks or markdown formatting. Return plain text matching the requested structure.`;
 
     const provider = window.nlSettings.aiProvider;
     const apiKey = window.nlSettings.aiApiKey;
