@@ -3,7 +3,7 @@ window.STORAGE_KEY = 'dlp_visualizer_state';
 window.escapeHtml = function(str) {
     const div = document.createElement('div');
     div.appendChild(document.createTextNode(String(str ?? '')));
-    return div.innerHTML;
+    return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 };
 
 // Shared Global Memory Structures

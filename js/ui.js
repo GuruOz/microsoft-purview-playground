@@ -638,7 +638,10 @@ function generateTable() {
     }
 
     let uniqueVars = Array.from(allVarsSet);
+    const generateAllBtn = document.getElementById('generateAllAITracesBtn');
+    
     if (uniqueVars.length > 12) {
+        if (generateAllBtn) generateAllBtn.classList.add('hidden');
         errorMsg.innerText = "Error: Too many unique conditions in this rule. Truth table capped to prevent browser crash.";
         errorMsg.classList.remove('hidden');
         return;
@@ -679,7 +682,16 @@ function generateTable() {
         let result = evaluatePostfix(postfix, currentValues);
         let trace = generateEvaluationTrace(activeRule.tokens, currentValues);
         
-        bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 font-mono text-xs w-full break-words leading-relaxed">${trace}</td>`;
+        let explHtml = '';
+        let staticExpl = window.generateStaticTraceExplanation(activeRule.tokens, currentValues, result);
+        explHtml += `<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 break-words leading-relaxed">${window.escapeHtml(staticExpl)}</div>`;
+        
+        if (window.nlSettings && window.nlSettings.enableAITrace) {
+            let rawTrace = trace.replace(/<[^>]+>/g, '');
+            explHtml += `<div class="mt-2"><button onclick="window.handleAITraceExplanation(this)" data-raw-trace="${window.escapeHtml(rawTrace)}" data-cv="${window.escapeHtml(JSON.stringify(currentValues))}" data-res="${result}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded">Explain with AI</button></div>`;
+        }
+        
+        bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 font-mono text-xs w-full break-words leading-relaxed">${trace}${explHtml}</td>`;
         
         let resClass = result ? "truth-t text-lg" : "truth-f text-lg";
         bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 text-center w-20 ${resClass}">${result ? 'T' : 'F'}</td>`;
@@ -687,7 +699,80 @@ function generateTable() {
     }
     
     tbody.innerHTML = bodyHtml;
+    
+    if (window.nlSettings && window.nlSettings.enableAITrace && numRows > 0) {
+        if (generateAllBtn) generateAllBtn.classList.remove('hidden');
+    } else {
+        if (generateAllBtn) generateAllBtn.classList.add('hidden');
+    }
 }
+
+window.handleAITraceExplanation = async function(btn) {
+    const rawTrace = btn.dataset.rawTrace;
+    const currentValues = JSON.parse(btn.dataset.cv);
+    const finalResult = btn.dataset.res === 'true';
+    const rule = window.policies[window.activePolicyIndex].rules[window.activeRuleIndex];
+    
+    btn.innerHTML = 'Generating...';
+    btn.disabled = true;
+    
+    try {
+        const expl = await window.generateAITraceExplanation(rule, rawTrace, currentValues, finalResult);
+        const container = btn.parentElement;
+        
+        let formattedExpl = window.escapeHtml(expl);
+        // Add color coding to True, False, and NOT
+        formattedExpl = formattedExpl.replace(/\b(True)\b/g, '<span class="text-green-600 dark:text-green-400 font-bold">$1</span>');
+        formattedExpl = formattedExpl.replace(/\b(False)\b/g, '<span class="text-red-600 dark:text-red-400 font-bold">$1</span>');
+        formattedExpl = formattedExpl.replace(/\b(NOT)\b/g, '<span class="text-red-600 dark:text-red-400 font-bold">$1</span>');
+        
+        container.innerHTML = `
+            <div class="mt-3 p-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800 rounded shadow-sm relative">
+                <div class="absolute -top-2.5 left-2 bg-white dark:bg-gray-800 px-1 flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-indigo-500 dark:text-indigo-400">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    AI Generated
+                </div>
+                <div class="text-xs text-gray-700 dark:text-gray-300 break-words leading-relaxed whitespace-pre-wrap">${formattedExpl}</div>
+            </div>`;
+    } catch(err) {
+        btn.innerHTML = 'Explain with AI';
+        btn.disabled = false;
+        alert(err.message);
+        throw err; // throw so generateAll can handle failure
+    }
+};
+
+window.generateAllAITraces = async function() {
+    const generateAllBtn = document.getElementById('generateAllAITracesBtn');
+    if (!generateAllBtn) return;
+    
+    const originalText = generateAllBtn.innerText;
+    generateAllBtn.innerText = 'Generating All...';
+    generateAllBtn.disabled = true;
+    generateAllBtn.classList.add('opacity-50');
+    
+    try {
+        const tableBody = document.getElementById('tableBody');
+        if (!tableBody) return;
+        const traceBtns = Array.from(tableBody.querySelectorAll('button')).filter(b => b.innerText.includes('Explain with AI') || b.innerText.includes('Generating...'));
+        
+        const promises = traceBtns.map(tBtn => {
+            if (!tBtn.disabled || tBtn.innerText.includes('Explain')) {
+                return window.handleAITraceExplanation(tBtn).catch(e => {
+                    console.error("Failed to generate trace explanation", e);
+                });
+            }
+            return Promise.resolve();
+        });
+        
+        await Promise.allSettled(promises);
+    } finally {
+        generateAllBtn.classList.add('hidden');
+        generateAllBtn.innerText = originalText;
+        generateAllBtn.disabled = false;
+        generateAllBtn.classList.remove('opacity-50');
+    }
+};
 
 window.getActiveDropdownIndex = getActiveDropdownIndex;
 window.setActiveDropdownIndex = setActiveDropdownIndex;

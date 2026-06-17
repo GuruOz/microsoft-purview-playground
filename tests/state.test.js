@@ -15,14 +15,15 @@ describe('escapeHtml', () => {
         expect(window.escapeHtml('a & b')).toBe('a &amp; b');
     });
 
-    test('does not escape double quotes in text content (only needed in attributes)', () => {
-        // createTextNode escapes <, >, & but not " — correct for innerHTML text nodes
-        expect(window.escapeHtml('"quoted"')).toBe('"quoted"');
+    test('escapes double quotes in text content (only needed in attributes)', () => {
+        expect(window.escapeHtml('"quoted"')).toBe('&quot;quoted&quot;');
+    });
+
+    test('escapes single quotes', () => {
+        expect(window.escapeHtml("it's mine")).toBe('it&#39;s mine');
     });
 
     test('XSS: img onerror payload is structurally neutralised', () => {
-        // The < and > are escaped, so the browser cannot parse it as an HTML tag.
-        // The attribute text remains (as plain text) but is harmless without the tag structure.
         const xss = '<img src=x onerror=alert(1)>';
         const result = window.escapeHtml(xss);
         expect(result).not.toContain('<img');
@@ -30,10 +31,12 @@ describe('escapeHtml', () => {
         expect(result).toContain('&gt;');
     });
 
-    test('XSS: script tag is neutralised', () => {
+    test('XSS: script tags are neutralised', () => {
         const xss = '<script>alert("xss")</script>';
         const result = window.escapeHtml(xss);
         expect(result).not.toContain('<script>');
+        expect(result).not.toContain('"');
+        expect(result).toContain('&quot;');
         expect(result).toContain('&lt;script&gt;');
     });
 
