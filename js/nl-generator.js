@@ -113,9 +113,11 @@ window.generateAITraceExplanation = async function(rule, traceString, currentVal
     const promptText = `You are an expert Microsoft Purview Data Loss Prevention (DLP) administrator.
 Your task is to explain a specific truth table evaluation row in one clear, natural language sentence.
 
+Focus your explanation on the USER ACTION rather than the raw boolean logic. Frame it from the perspective of what the user is doing (or not doing) that causes the rule to trigger or not trigger. For example, instead of "Condition X is false", say "If the user sends an email that does not contain X".
+
 Microsoft Purview Logic Rules:
 - Conditions are combined using logical AND, OR, and NOT operators.
-- "NOT" inverts the condition (e.g., if a condition is False, NOT makes it True).
+- "NOT" inverts the condition.
 - The final result dictates whether the rule's protective actions will trigger.
 
 Variables state:
@@ -125,9 +127,10 @@ Logical Trace: ${traceString}
 Final Result: ${finalResult ? 'True (Rule Triggers)' : 'False (Rule Does Not Trigger)'}
 
 Instructions:
-1. Provide a single human-readable sentence explaining why the final result is what it is based on the variable states.
-2. Truncate very long variable names with "or ...".
-3. Do not use code blocks, markdown formatting, or bullet points. Just return the pure text description.`;
+1. Provide a single human-readable sentence explaining why the final result is what it is based on the user's actions.
+2. Focus entirely on the practical user action (e.g., "If the user attaches a file...").
+3. Truncate very long variable names with "or ...".
+4. Do not use code blocks, markdown formatting, or bullet points. Just return the pure text description.`;
 
     const provider = window.nlSettings.aiProvider;
     const apiKey = window.nlSettings.aiApiKey;
