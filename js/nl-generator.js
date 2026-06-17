@@ -113,11 +113,12 @@ window.generateAITraceExplanation = async function(rule, traceString, currentVal
     const promptText = `You are an expert Microsoft Purview Data Loss Prevention (DLP) administrator.
 Your task is to explain a specific truth table evaluation row in one clear, natural language sentence.
 
-Focus your explanation on the USER ACTION rather than the raw boolean logic. Frame it from the perspective of what the user is doing (or not doing) that causes the rule to trigger or not trigger. For example, instead of "Condition X is false", say "If the user sends an email that does not contain X".
+Focus your explanation on the USER ACTION, but also explicitly break down how those actions translate to the logical True/False/NOT conditions shown in the trace. Frame it from the perspective of what the user is doing, and how the system logically evaluated it step-by-step.
 
 Microsoft Purview Logic Rules:
 - Conditions are combined using logical AND, OR, and NOT operators.
-- "NOT" inverts the condition.
+- "NOT" inverts the condition. Explain when a NOT() operator flips a result (e.g. "the NOT operator inverts this False to True").
+- For complex groupings like NOT(F OR T), explain the inner grouping first before explaining how it interacts with the rest of the rule.
 - The final result dictates whether the rule's protective actions will trigger.
 
 Variables state:
@@ -127,8 +128,8 @@ Logical Trace: ${traceString}
 Final Result: ${finalResult ? 'True (Rule Triggers)' : 'False (Rule Does Not Trigger)'}
 
 Instructions:
-1. Provide a single human-readable sentence explaining why the final result is what it is based on the user's actions.
-2. Focus entirely on the practical user action (e.g., "If the user attaches a file...").
+1. Provide a single human-readable sentence explaining why the final result is what it is.
+2. Explicitly mention the True/False state of the user's actions and how they resolve through AND/OR/NOT operators (e.g., "The user did not include X (False)... so the NOT() operator inverts this to True").
 3. Truncate long variable names, or if there are multiple condition variables, truncate the list to be concise (e.g., "If the user does X, Y, or...").
 4. Do not use code blocks, markdown formatting, or bullet points. Just return the pure text description.`;
 
