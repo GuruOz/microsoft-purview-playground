@@ -702,7 +702,7 @@ window.handleAITraceExplanation = async function(btn) {
     const rawTrace = btn.dataset.rawTrace;
     const currentValues = JSON.parse(btn.dataset.cv);
     const finalResult = btn.dataset.res === 'true';
-    const rule = window.dlpPolicy.rules[window.selectedRuleIndex];
+    const rule = window.policies[window.activePolicyIndex].rules[window.activeRuleIndex];
     
     btn.innerHTML = 'Generating...';
     btn.disabled = true;
