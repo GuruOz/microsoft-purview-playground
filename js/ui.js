@@ -257,6 +257,9 @@ function renderPolicies() {
                                 targetSelect.onchange = (e) => {
                                     e.stopPropagation();
                                     token.targetContext = e.target.value;
+                                    if (token.originalIndex !== undefined && window.policies[pIndex] && window.policies[pIndex].rules[rIndex]) {
+                                        window.policies[pIndex].rules[rIndex].tokens[token.originalIndex].targetContext = e.target.value;
+                                    }
                                     window.saveState();
                                     // No need to full re-render, the state is updated for the simulator
                                 };
@@ -661,17 +664,19 @@ function generateTable() {
             let val = bit === 1;
             currentValues[uniqueVars[j]] = val;
             
+            let token = activeRule.tokens.find(t => t.type === 'variable' && t.val === uniqueVars[j]);
+            if (token) {
+                window.expandTokenSimVars(token).forEach(k => {
+                    currentValues[k] = val;
+                });
+            }
+            
             let cellClass = val ? "truth-t" : "truth-f";
             bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 text-center text-sm w-24 ${cellClass}">${val ? 'T' : 'F'}</td>`;
         }
         
         let result = evaluatePostfix(postfix, currentValues);
-        
-        let traceValues = {};
-        for (let j = 0; j < uniqueVars.length; j++) {
-            traceValues[uniqueVars[j]] = currentValues[uniqueVars[j]];
-        }
-        let trace = generateEvaluationTrace(activeRule.tokens, traceValues);
+        let trace = generateEvaluationTrace(activeRule.tokens, currentValues);
         
         bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 font-mono text-xs w-full break-words leading-relaxed">${trace}</td>`;
         
