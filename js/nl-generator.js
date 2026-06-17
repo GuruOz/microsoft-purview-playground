@@ -128,10 +128,12 @@ Logical Trace: ${traceString}
 Final Result: ${finalResult ? 'True (Rule Triggers)' : 'False (Rule Does Not Trigger)'}
 
 Instructions:
-1. Provide a single human-readable sentence explaining why the final result is what it is.
-2. Explicitly mention the True/False state of the user's actions and how they resolve through AND/OR/NOT operators (e.g., "The user did not include X (False)... so the NOT() operator inverts this to True").
-3. Truncate long variable names, or if there are multiple condition variables, truncate the list to be concise (e.g., "If the user does X, Y, or...").
-4. Do not use code blocks, markdown formatting, or bullet points. Just return the pure text description.`;
+1. Explain the trace by providing a structured layout. Do NOT provide a paragraph.
+2. First, list each variable on its own line using this format: "Variable A: [Truncated Variable Name] -> True/False". If the variable is inside a NOT() operator, explicitly show it like this: "Variable B: NOT([Truncated Variable Name]) -> NOT(True/False) -> False/True".
+3. Next, provide the literal trace on its own line: "Trace on screen: [Insert Logical Trace Here]".
+4. Finally, state the final result: "Final Result: True/False".
+5. Truncate long variable names to be concise (e.g., use "...or...").
+6. Do not use code blocks or markdown formatting. Return plain text matching the requested structure.`;
 
     const provider = window.nlSettings.aiProvider;
     const apiKey = window.nlSettings.aiApiKey;

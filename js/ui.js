@@ -719,7 +719,7 @@ window.handleAITraceExplanation = async function(btn) {
     try {
         const expl = await window.generateAITraceExplanation(rule, rawTrace, currentValues, finalResult);
         const container = btn.parentElement;
-        container.innerHTML = `<span class="text-xs text-indigo-600 dark:text-indigo-400 break-words leading-relaxed">${window.escapeHtml(expl)}</span>`;
+        container.innerHTML = `<span class="text-xs text-indigo-600 dark:text-indigo-400 break-words leading-relaxed whitespace-pre-wrap">${window.escapeHtml(expl)}</span>`;
     } catch(err) {
         btn.innerHTML = 'Explain with AI';
         btn.disabled = false;
