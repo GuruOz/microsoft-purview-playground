@@ -742,19 +742,16 @@ window.generateAllAITraces = async function() {
         if (!tableBody) return;
         const traceBtns = Array.from(tableBody.querySelectorAll('button')).filter(b => b.innerText.includes('Explain with AI') || b.innerText.includes('Generating...'));
         
-        for (let tBtn of traceBtns) {
-            // Check if it's still ungenerated
+        const promises = traceBtns.map(tBtn => {
             if (!tBtn.disabled || tBtn.innerText.includes('Explain')) {
-                try {
-                    await window.handleAITraceExplanation(tBtn);
-                    // Pause slightly to avoid aggressive API rate limiting
-                    await new Promise(r => setTimeout(r, 600));
-                } catch (e) {
-                    // If one fails (e.g. rate limit, api key), stop processing the rest
-                    break;
-                }
+                return window.handleAITraceExplanation(tBtn).catch(e => {
+                    console.error("Failed to generate trace explanation", e);
+                });
             }
-        }
+            return Promise.resolve();
+        });
+        
+        await Promise.allSettled(promises);
     } finally {
         generateAllBtn.classList.add('hidden');
         generateAllBtn.innerText = originalText;
