@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const modeSelect = document.getElementById('nlModeSelect');
+    const traceModeSelect = document.getElementById('nlTraceModeSelect');
     const providerSelect = document.getElementById('aiProviderSelect');
     const apiKeyInput = document.getElementById('aiApiKeyInput');
     const aiConfigSection = document.getElementById('aiConfigSection');
@@ -7,13 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Load initial values
     if (window.nlSettings) {
-        modeSelect.value = window.nlSettings.mode || 'static1';
+        modeSelect.value = window.nlSettings.mode || 'static';
+        if (traceModeSelect) traceModeSelect.value = window.nlSettings.traceMode || 'static';
         providerSelect.value = window.nlSettings.aiProvider || 'openai';
         apiKeyInput.value = window.nlSettings.aiApiKey || '';
     }
 
     const updateVisibility = () => {
-        if (modeSelect.value === 'ai') {
+        const needsAi = modeSelect.value === 'ai' || (traceModeSelect && traceModeSelect.value === 'ai');
+        if (needsAi) {
             aiConfigSection.classList.remove('hidden');
         } else {
             aiConfigSection.classList.add('hidden');
@@ -21,19 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     modeSelect.addEventListener('change', updateVisibility);
+    if (traceModeSelect) traceModeSelect.addEventListener('change', updateVisibility);
     updateVisibility();
 
     saveBtn.addEventListener('click', () => {
         const mode = modeSelect.value;
+        const traceMode = traceModeSelect ? traceModeSelect.value : 'static';
         const provider = providerSelect.value;
         const key = apiKeyInput.value.trim();
 
-        if (mode === 'ai' && !key) {
+        if ((mode === 'ai' || traceMode === 'ai') && !key) {
             showSettingsToast("API Key is required for AI mode.", "error");
             return;
         }
 
-        window.saveNLSettings(mode, provider, key);
+        window.saveNLSettings(mode, traceMode, provider, key);
         showSettingsToast("Settings saved successfully!", "success");
     });
 });

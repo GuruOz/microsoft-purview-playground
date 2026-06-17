@@ -679,7 +679,16 @@ function generateTable() {
         let result = evaluatePostfix(postfix, currentValues);
         let trace = generateEvaluationTrace(activeRule.tokens, currentValues);
         
-        bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 font-mono text-xs w-full break-words leading-relaxed">${trace}</td>`;
+        let explHtml = '';
+        if (window.nlSettings && window.nlSettings.traceMode === 'ai') {
+            let rawTrace = trace.replace(/<[^>]+>/g, '');
+            explHtml = `<div class="mt-2"><button onclick="window.handleAITraceExplanation(this)" data-raw-trace="${window.escapeHtml(rawTrace)}" data-cv="${window.escapeHtml(JSON.stringify(currentValues))}" data-res="${result}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded">Explain with AI</button></div>`;
+        } else {
+            let expl = window.generateStaticTraceExplanation(activeRule.tokens, currentValues, result);
+            explHtml = `<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 break-words leading-relaxed">${window.escapeHtml(expl)}</div>`;
+        }
+        
+        bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 font-mono text-xs w-full break-words leading-relaxed">${trace}${explHtml}</td>`;
         
         let resClass = result ? "truth-t text-lg" : "truth-f text-lg";
         bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 text-center w-20 ${resClass}">${result ? 'T' : 'F'}</td>`;
@@ -688,6 +697,26 @@ function generateTable() {
     
     tbody.innerHTML = bodyHtml;
 }
+
+window.handleAITraceExplanation = async function(btn) {
+    const rawTrace = btn.dataset.rawTrace;
+    const currentValues = JSON.parse(btn.dataset.cv);
+    const finalResult = btn.dataset.res === 'true';
+    const rule = window.dlpPolicy.rules[window.selectedRuleIndex];
+    
+    btn.innerHTML = 'Generating...';
+    btn.disabled = true;
+    
+    try {
+        const expl = await window.generateAITraceExplanation(rule, rawTrace, currentValues, finalResult);
+        const container = btn.parentElement;
+        container.innerHTML = `<span class="text-xs text-indigo-600 dark:text-indigo-400 break-words leading-relaxed">${window.escapeHtml(expl)}</span>`;
+    } catch(err) {
+        btn.innerHTML = 'Explain with AI';
+        btn.disabled = false;
+        alert(err.message);
+    }
+};
 
 window.getActiveDropdownIndex = getActiveDropdownIndex;
 window.setActiveDropdownIndex = setActiveDropdownIndex;

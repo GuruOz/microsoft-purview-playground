@@ -1,17 +1,20 @@
 // Natural Language Generator
 
 window.nlSettings = {
-    mode: localStorage.getItem('dlp_nl_mode') || 'static1', // 'static1', 'static2', 'ai'
+    mode: localStorage.getItem('dlp_nl_mode') || 'static', // 'static', 'ai'
+    traceMode: localStorage.getItem('dlp_nl_trace_mode') || 'static', // 'static', 'ai'
     aiProvider: localStorage.getItem('dlp_ai_provider') || 'openai',
     // API key stored in sessionStorage only — never persisted to disk or shared
     aiApiKey: sessionStorage.getItem('dlp_ai_apikey') || ''
 };
 
-window.saveNLSettings = function(mode, provider, key) {
+window.saveNLSettings = function(mode, traceMode, provider, key) {
     window.nlSettings.mode = mode;
+    window.nlSettings.traceMode = traceMode;
     window.nlSettings.aiProvider = provider;
     window.nlSettings.aiApiKey = key;
     localStorage.setItem('dlp_nl_mode', mode);
+    localStorage.setItem('dlp_nl_trace_mode', traceMode);
     localStorage.setItem('dlp_ai_provider', provider);
     sessionStorage.setItem('dlp_ai_apikey', key);
 };
@@ -46,12 +49,7 @@ window.generateStaticNL = function(rule, mode) {
     
     let actionText = actionList.length > 0 ? actionList.join(', ') : 'None';
     
-    let resultText = "";
-    if (mode === 'static1') {
-        resultText = `If ${conditionText} then apply actions: ${actionText}.`;
-    } else {
-        resultText = `Rule applies when ${conditionText}, resulting in actions: ${actionText}.`;
-    }
+    let resultText = `Rule applies when ${conditionText}, resulting in actions: ${actionText}.`;
     
     if (rule.stopProcessing) {
         resultText += " Stop further rule processing.";
@@ -60,12 +58,125 @@ window.generateStaticNL = function(rule, mode) {
     return resultText;
 };
 
+// Generate static explanation for truth table trace row
+window.generateStaticTraceExplanation = function(tokens, currentValues, finalResult) {
+    let explanation = "If ";
+    let clauses = [];
+    
+    tokens.forEach(t => {
+        if (t.type === 'variable') {
+            let val = currentValues[t.val] === true;
+            let shortVal = t.val;
+            
+            // Truncate long comma separated lists for readability
+            if (shortVal.includes(',') && shortVal.length > 40) {
+                shortVal = shortVal.split(',')[0] + " or ...";
+            }
+            
+            // Format property string logic naturally
+            let isNegative = !val;
+            let verb = "is";
+            
+            if (shortVal.includes('contains')) {
+                verb = "contains";
+                shortVal = shortVal.replace('contains:', '').trim();
+                clauses.push(`'${shortVal}' ${isNegative ? 'DOES NOT contain' : 'contains'} the value`);
+            } else if (shortVal.includes('is:')) {
+                shortVal = shortVal.replace('is:', '').trim();
+                clauses.push(`'${shortVal}' ${isNegative ? 'is NOT' : 'is'} the value`);
+            } else {
+                clauses.push(`'${shortVal}' is ${val ? 'True' : 'False'}`);
+            }
+        } else if (t.type === 'operator') {
+            clauses.push(t.val.toLowerCase());
+        }
+    });
+    
+    explanation += clauses.join(' ');
+    explanation += `, then final result is ${finalResult ? 'True' : 'False'}.`;
+    return explanation;
+};
+
+// Generate AI explanation for truth table trace row
+window.generateAITraceExplanation = async function(rule, traceString, currentValues, finalResult) {
+    if (!window.nlSettings.aiApiKey) {
+        throw new Error("AI API Key is missing. Please configure it in the Settings tab.");
+    }
+    
+    let varsText = [];
+    rule.tokens.forEach(t => {
+        if (t.type === 'variable') {
+            varsText.push(`- "${t.val}" is ${currentValues[t.val] ? 'True' : 'False'}`);
+        }
+    });
+
+    const promptText = `Explain this Microsoft Purview DLP truth table evaluation row in one clear natural language sentence. Do not use code blocks. Truncate very long variable names with "or ...".
+
+Variables state:
+${varsText.join('\n')}
+
+Logical Trace: ${traceString}
+Final Result: ${finalResult ? 'True' : 'False'}
+
+Provide a single human-readable sentence explaining why the final result is what it is based on the variable states.`;
+
+    const provider = window.nlSettings.aiProvider;
+    const apiKey = window.nlSettings.aiApiKey;
+
+    try {
+        let returnedText = "";
+        if (provider === 'openai') {
+            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body: JSON.stringify({ model: 'gpt-4o-mini', messages: [{ role: 'user', content: promptText }], temperature: 0.2 })
+            });
+            if (!res.ok) throw new Error(`OpenAI API error: ${res.statusText}`);
+            const data = await res.json();
+            returnedText = data.choices[0].message.content.trim();
+        } 
+        else if (provider === 'gemini') {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], generationConfig: { temperature: 0.2 } })
+            });
+            if (!res.ok) throw new Error(`Gemini API error: ${res.statusText}`);
+            const data = await res.json();
+            returnedText = data.candidates[0].content.parts[0].text.trim();
+        }
+        else if (provider === 'claude') {
+            const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerously-allow-urls': 'true' },
+                body: JSON.stringify({ model: 'claude-3-haiku-20240307', messages: [{ role: 'user', content: promptText }], max_tokens: 300, temperature: 0.2 })
+            });
+            if (!res.ok) throw new Error(`Claude API error: ${res.statusText}`);
+            const data = await res.json();
+            returnedText = data.content[0].text.trim();
+        }
+        else if (provider === 'deepseek') {
+            const res = await fetch('https://api.deepseek.com/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+                body: JSON.stringify({ model: 'deepseek-chat', messages: [{ role: 'user', content: promptText }], temperature: 0.2 })
+            });
+            if (!res.ok) throw new Error(`DeepSeek API error: ${res.statusText}`);
+            const data = await res.json();
+            returnedText = data.choices[0].message.content.trim();
+        }
+        return returnedText;
+    } catch(err) {
+        throw err;
+    }
+};
+
 window.generateAINL = async function(rule) {
     if (!window.nlSettings.aiApiKey) {
         throw new Error("AI API Key is missing. Please configure it in the Settings tab.");
     }
     
-    const staticBase = window.generateStaticNL(rule, 'static1');
+    const staticBase = window.generateStaticNL(rule);
     const promptText = `You are a helpful assistant that explains Microsoft Purview DLP rules in clear, concise natural language.
 Translate the following logical rule structure into a seamless, human-readable paragraph. Do not hallucinate any details. Do not use markdown code blocks or bullet points. Just return the pure text description.
 

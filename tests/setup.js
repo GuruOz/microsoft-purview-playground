@@ -59,7 +59,8 @@ beforeEach(() => {
     window.dlpLogs = [];
     window.lastLocalStorageAction = '';
     window.nlSettings = {
-        mode: 'static1',
+        mode: 'static',
+        traceMode: 'static',
         aiProvider: 'openai',
         aiApiKey: ''
     };

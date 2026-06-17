@@ -2,15 +2,17 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 describe('saveNLSettings', () => {
     test('updates memory object and storage keys', () => {
-        window.saveNLSettings('static2', 'claude', 'my-key');
+        window.saveNLSettings('static', 'ai', 'claude', 'my-key');
 
         expect(window.nlSettings).toEqual({
-            mode: 'static2',
+            mode: 'static',
+            traceMode: 'ai',
             aiProvider: 'claude',
             aiApiKey: 'my-key'
         });
 
-        expect(localStorage.getItem('dlp_nl_mode')).toBe('static2');
+        expect(localStorage.getItem('dlp_nl_mode')).toBe('static');
+        expect(localStorage.getItem('dlp_nl_trace_mode')).toBe('ai');
         expect(localStorage.getItem('dlp_ai_provider')).toBe('claude');
         expect(sessionStorage.getItem('dlp_ai_apikey')).toBe('my-key');
     });
@@ -19,26 +21,10 @@ describe('saveNLSettings', () => {
 describe('generateStaticNL', () => {
     test('returns fallback for empty rule', () => {
         const rule = { tokens: [], actions: {}, stopProcessing: false };
-        expect(window.generateStaticNL(rule, 'static1')).toBe('This rule has no conditions configured.');
+        expect(window.generateStaticNL(rule)).toBe('This rule has no conditions configured.');
     });
 
-    test('generates expected structure for static1 mode', () => {
-        const rule = {
-            tokens: [
-                { type: 'variable', val: 'SensitiveInfo' },
-                { type: 'operator', val: 'AND' },
-                { type: 'operator', val: 'NOT' },
-                { type: 'variable', val: 'Exception' }
-            ],
-            actions: { monitor: true, block: true },
-            stopProcessing: false
-        };
-
-        const result = window.generateStaticNL(rule, 'static1');
-        expect(result).toBe('If [SensitiveInfo] and NOT [Exception] then apply actions: Monitor, Block.');
-    });
-
-    test('generates expected structure for static2 mode', () => {
+    test('generates expected structure for static mode', () => {
         const rule = {
             tokens: [
                 { type: 'operator', val: '(' },
@@ -51,9 +37,11 @@ describe('generateStaticNL', () => {
             stopProcessing: true
         };
 
-        const result = window.generateStaticNL(rule, 'static2');
+        const result = window.generateStaticNL(rule);
         expect(result).toBe('Rule applies when ([A] or [B]), resulting in actions: Notify. Stop further rule processing.');
     });
+
+
 
     test('returns None for actions when no actions are set', () => {
         const rule = {
@@ -61,7 +49,7 @@ describe('generateStaticNL', () => {
             actions: {},
             stopProcessing: false
         };
-        expect(window.generateStaticNL(rule, 'static1')).toBe('If [A] then apply actions: None.');
+        expect(window.generateStaticNL(rule)).toBe('Rule applies when [A], resulting in actions: None.');
     });
 });
 

@@ -46,11 +46,16 @@
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Explanation Mode</label>
-                    <select id="nlModeSelect" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500">
-                        <option value="static1">Static: "If [Condition] then [Action]"</option>
-                        <option value="static2">Static: "Rule applies when [Condition], resulting in [Action]"</option>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Rule Explanation Mode</label>
+                    <select id="nlModeSelect" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500 mb-4">
+                        <option value="static">Static: "Rule applies when [Condition]..."</option>
                         <option value="ai">AI Generated</option>
+                    </select>
+
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Truth Table Trace Mode</label>
+                    <select id="nlTraceModeSelect" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500">
+                        <option value="static">Static Text</option>
+                        <option value="ai">AI Generated (On Demand)</option>
                     </select>
                 </div>
 
