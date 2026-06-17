@@ -52,11 +52,10 @@
                         <option value="ai">AI Generated</option>
                     </select>
 
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Truth Table Trace Mode</label>
-                    <select id="nlTraceModeSelect" class="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 dark:text-white p-2 rounded text-sm focus:outline-none focus:border-indigo-500">
-                        <option value="static">Static Text</option>
-                        <option value="ai">AI Generated (On Demand)</option>
-                    </select>
+                    <div class="flex items-center gap-2 mt-4">
+                        <input type="checkbox" id="enableAITraceCheckbox" class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
+                        <label for="enableAITraceCheckbox" class="text-sm font-semibold text-gray-700 dark:text-gray-300">Enable On-Demand AI Explanations in Truth Table</label>
+                    </div>
                 </div>
 
                 <div id="aiConfigSection" class="space-y-4 hidden p-4 border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 rounded">

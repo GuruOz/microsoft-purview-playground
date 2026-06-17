@@ -2,17 +2,17 @@ import { describe, test, expect, vi, beforeEach } from 'vitest';
 
 describe('saveNLSettings', () => {
     test('updates memory object and storage keys', () => {
-        window.saveNLSettings('static', 'ai', 'claude', 'my-key');
+        window.saveNLSettings('static', true, 'claude', 'my-key');
 
         expect(window.nlSettings).toEqual({
             mode: 'static',
-            traceMode: 'ai',
+            enableAITrace: true,
             aiProvider: 'claude',
             aiApiKey: 'my-key'
         });
 
         expect(localStorage.getItem('dlp_nl_mode')).toBe('static');
-        expect(localStorage.getItem('dlp_nl_trace_mode')).toBe('ai');
+        expect(localStorage.getItem('dlp_nl_trace_ai')).toBe('true');
         expect(localStorage.getItem('dlp_ai_provider')).toBe('claude');
         expect(sessionStorage.getItem('dlp_ai_apikey')).toBe('my-key');
     });

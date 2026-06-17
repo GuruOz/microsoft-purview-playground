@@ -683,12 +683,12 @@ function generateTable() {
         let trace = generateEvaluationTrace(activeRule.tokens, currentValues);
         
         let explHtml = '';
-        if (window.nlSettings && window.nlSettings.traceMode === 'ai') {
+        let staticExpl = window.generateStaticTraceExplanation(activeRule.tokens, currentValues, result);
+        explHtml += `<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 break-words leading-relaxed">${window.escapeHtml(staticExpl)}</div>`;
+        
+        if (window.nlSettings && window.nlSettings.enableAITrace) {
             let rawTrace = trace.replace(/<[^>]+>/g, '');
-            explHtml = `<div class="mt-2"><button onclick="window.handleAITraceExplanation(this)" data-raw-trace="${window.escapeHtml(rawTrace)}" data-cv="${window.escapeHtml(JSON.stringify(currentValues))}" data-res="${result}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded">Explain with AI</button></div>`;
-        } else {
-            let expl = window.generateStaticTraceExplanation(activeRule.tokens, currentValues, result);
-            explHtml = `<div class="mt-2 text-xs text-gray-500 dark:text-gray-400 break-words leading-relaxed">${window.escapeHtml(expl)}</div>`;
+            explHtml += `<div class="mt-2"><button onclick="window.handleAITraceExplanation(this)" data-raw-trace="${window.escapeHtml(rawTrace)}" data-cv="${window.escapeHtml(JSON.stringify(currentValues))}" data-res="${result}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded">Explain with AI</button></div>`;
         }
         
         bodyHtml += `<td class="border border-gray-300 dark:border-gray-700 p-2 font-mono text-xs w-full break-words leading-relaxed">${trace}${explHtml}</td>`;
@@ -700,7 +700,7 @@ function generateTable() {
     
     tbody.innerHTML = bodyHtml;
     
-    if (window.nlSettings && window.nlSettings.traceMode === 'ai' && numRows > 0) {
+    if (window.nlSettings && window.nlSettings.enableAITrace && numRows > 0) {
         if (generateAllBtn) generateAllBtn.classList.remove('hidden');
     } else {
         if (generateAllBtn) generateAllBtn.classList.add('hidden');

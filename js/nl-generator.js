@@ -2,19 +2,19 @@
 
 window.nlSettings = {
     mode: localStorage.getItem('dlp_nl_mode') || 'static', // 'static', 'ai'
-    traceMode: localStorage.getItem('dlp_nl_trace_mode') || 'static', // 'static', 'ai'
+    enableAITrace: localStorage.getItem('dlp_nl_trace_ai') === 'true', // boolean
     aiProvider: localStorage.getItem('dlp_ai_provider') || 'openai',
     // API key stored in sessionStorage only — never persisted to disk or shared
     aiApiKey: sessionStorage.getItem('dlp_ai_apikey') || ''
 };
 
-window.saveNLSettings = function(mode, traceMode, provider, key) {
+window.saveNLSettings = function(mode, enableAITrace, provider, key) {
     window.nlSettings.mode = mode;
-    window.nlSettings.traceMode = traceMode;
+    window.nlSettings.enableAITrace = enableAITrace;
     window.nlSettings.aiProvider = provider;
     window.nlSettings.aiApiKey = key;
     localStorage.setItem('dlp_nl_mode', mode);
-    localStorage.setItem('dlp_nl_trace_mode', traceMode);
+    localStorage.setItem('dlp_nl_trace_ai', enableAITrace);
     localStorage.setItem('dlp_ai_provider', provider);
     sessionStorage.setItem('dlp_ai_apikey', key);
 };
@@ -129,7 +129,7 @@ Final Result: ${finalResult ? 'True (Rule Triggers)' : 'False (Rule Does Not Tri
 Instructions:
 1. Provide a single human-readable sentence explaining why the final result is what it is based on the user's actions.
 2. Focus entirely on the practical user action (e.g., "If the user attaches a file...").
-3. Truncate very long variable names with "or ...".
+3. Truncate long variable names, or if there are multiple condition variables, truncate the list to be concise (e.g., "If the user does X, Y, or...").
 4. Do not use code blocks, markdown formatting, or bullet points. Just return the pure text description.`;
 
     const provider = window.nlSettings.aiProvider;

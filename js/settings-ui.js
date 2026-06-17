@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const modeSelect = document.getElementById('nlModeSelect');
-    const traceModeSelect = document.getElementById('nlTraceModeSelect');
+    const enableAITraceCheckbox = document.getElementById('enableAITraceCheckbox');
     const providerSelect = document.getElementById('aiProviderSelect');
     const apiKeyInput = document.getElementById('aiApiKeyInput');
     const aiConfigSection = document.getElementById('aiConfigSection');
@@ -9,13 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load initial values
     if (window.nlSettings) {
         modeSelect.value = window.nlSettings.mode || 'static';
-        if (traceModeSelect) traceModeSelect.value = window.nlSettings.traceMode || 'static';
+        if (enableAITraceCheckbox) enableAITraceCheckbox.checked = window.nlSettings.enableAITrace === true;
         providerSelect.value = window.nlSettings.aiProvider || 'openai';
         apiKeyInput.value = window.nlSettings.aiApiKey || '';
     }
 
     const updateVisibility = () => {
-        const needsAi = modeSelect.value === 'ai' || (traceModeSelect && traceModeSelect.value === 'ai');
+        const needsAi = modeSelect.value === 'ai' || (enableAITraceCheckbox && enableAITraceCheckbox.checked);
         if (needsAi) {
             aiConfigSection.classList.remove('hidden');
         } else {
@@ -24,21 +24,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     modeSelect.addEventListener('change', updateVisibility);
-    if (traceModeSelect) traceModeSelect.addEventListener('change', updateVisibility);
+    if (enableAITraceCheckbox) enableAITraceCheckbox.addEventListener('change', updateVisibility);
     updateVisibility();
 
     saveBtn.addEventListener('click', () => {
         const mode = modeSelect.value;
-        const traceMode = traceModeSelect ? traceModeSelect.value : 'static';
+        const enableAITrace = enableAITraceCheckbox ? enableAITraceCheckbox.checked : false;
         const provider = providerSelect.value;
         const key = apiKeyInput.value.trim();
 
-        if ((mode === 'ai' || traceMode === 'ai') && !key) {
+        if ((mode === 'ai' || enableAITrace) && !key) {
             showSettingsToast("API Key is required for AI mode.", "error");
             return;
         }
 
-        window.saveNLSettings(mode, traceMode, provider, key);
+        window.saveNLSettings(mode, enableAITrace, provider, key);
         showSettingsToast("Settings saved successfully!", "success");
     });
 });

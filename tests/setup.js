@@ -60,7 +60,7 @@ beforeEach(() => {
     window.lastLocalStorageAction = '';
     window.nlSettings = {
         mode: 'static',
-        traceMode: 'static',
+        enableAITrace: false,
         aiProvider: 'openai',
         aiApiKey: ''
     };
