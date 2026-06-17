@@ -229,7 +229,10 @@
         <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm border border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
                 <h2 id="truthTableTitle" class="text-lg font-bold text-gray-800 dark:text-white">Truth Table Evaluation</h2>
-                <div id="errorMsg" class="text-red-600 dark:text-red-400 text-sm hidden font-mono bg-red-50 dark:bg-red-900/20 p-2 border border-red-200 dark:border-red-800 rounded"></div>
+                <div class="flex items-center gap-4">
+                    <button id="generateAllAITracesBtn" onclick="window.generateAllAITraces()" class="hidden text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 px-3 py-1.5 rounded transition-colors shadow-sm">Generate All AI Explanations</button>
+                    <div id="errorMsg" class="text-red-600 dark:text-red-400 text-sm hidden font-mono bg-red-50 dark:bg-red-900/20 p-2 border border-red-200 dark:border-red-800 rounded"></div>
+                </div>
             </div>
             <div class="max-h-[60vh] overflow-y-auto overflow-x-auto custom-scrollbar relative border border-gray-200 dark:border-gray-700 rounded">
                 <table class="min-w-full border-collapse text-sm text-left table-auto">

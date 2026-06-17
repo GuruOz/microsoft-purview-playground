@@ -638,7 +638,10 @@ function generateTable() {
     }
 
     let uniqueVars = Array.from(allVarsSet);
+    const generateAllBtn = document.getElementById('generateAllAITracesBtn');
+    
     if (uniqueVars.length > 12) {
+        if (generateAllBtn) generateAllBtn.classList.add('hidden');
         errorMsg.innerText = "Error: Too many unique conditions in this rule. Truth table capped to prevent browser crash.";
         errorMsg.classList.remove('hidden');
         return;
@@ -696,6 +699,12 @@ function generateTable() {
     }
     
     tbody.innerHTML = bodyHtml;
+    
+    if (window.nlSettings && window.nlSettings.traceMode === 'ai' && numRows > 0) {
+        if (generateAllBtn) generateAllBtn.classList.remove('hidden');
+    } else {
+        if (generateAllBtn) generateAllBtn.classList.add('hidden');
+    }
 }
 
 window.handleAITraceExplanation = async function(btn) {
@@ -715,6 +724,42 @@ window.handleAITraceExplanation = async function(btn) {
         btn.innerHTML = 'Explain with AI';
         btn.disabled = false;
         alert(err.message);
+        throw err; // throw so generateAll can handle failure
+    }
+};
+
+window.generateAllAITraces = async function() {
+    const generateAllBtn = document.getElementById('generateAllAITracesBtn');
+    if (!generateAllBtn) return;
+    
+    const originalText = generateAllBtn.innerText;
+    generateAllBtn.innerText = 'Generating All...';
+    generateAllBtn.disabled = true;
+    generateAllBtn.classList.add('opacity-50');
+    
+    try {
+        const tableBody = document.getElementById('tableBody');
+        if (!tableBody) return;
+        const traceBtns = Array.from(tableBody.querySelectorAll('button')).filter(b => b.innerText.includes('Explain with AI') || b.innerText.includes('Generating...'));
+        
+        for (let tBtn of traceBtns) {
+            // Check if it's still ungenerated
+            if (!tBtn.disabled || tBtn.innerText.includes('Explain')) {
+                try {
+                    await window.handleAITraceExplanation(tBtn);
+                    // Pause slightly to avoid aggressive API rate limiting
+                    await new Promise(r => setTimeout(r, 600));
+                } catch (e) {
+                    // If one fails (e.g. rate limit, api key), stop processing the rest
+                    break;
+                }
+            }
+        }
+    } finally {
+        generateAllBtn.classList.add('hidden');
+        generateAllBtn.innerText = originalText;
+        generateAllBtn.disabled = false;
+        generateAllBtn.classList.remove('opacity-50');
     }
 };
 
