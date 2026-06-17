@@ -719,7 +719,21 @@ window.handleAITraceExplanation = async function(btn) {
     try {
         const expl = await window.generateAITraceExplanation(rule, rawTrace, currentValues, finalResult);
         const container = btn.parentElement;
-        container.innerHTML = `<span class="text-xs text-indigo-600 dark:text-indigo-400 break-words leading-relaxed whitespace-pre-wrap">${window.escapeHtml(expl)}</span>`;
+        
+        let formattedExpl = window.escapeHtml(expl);
+        // Add color coding to True, False, and NOT
+        formattedExpl = formattedExpl.replace(/\b(True)\b/g, '<span class="text-green-600 dark:text-green-400 font-bold">$1</span>');
+        formattedExpl = formattedExpl.replace(/\b(False)\b/g, '<span class="text-red-600 dark:text-red-400 font-bold">$1</span>');
+        formattedExpl = formattedExpl.replace(/\b(NOT)\b/g, '<span class="text-red-600 dark:text-red-400 font-bold">$1</span>');
+        
+        container.innerHTML = `
+            <div class="mt-3 p-3 bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800 rounded shadow-sm relative">
+                <div class="absolute -top-2.5 left-2 bg-white dark:bg-gray-800 px-1 flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-indigo-500 dark:text-indigo-400">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    AI Generated
+                </div>
+                <div class="text-xs text-gray-700 dark:text-gray-300 break-words leading-relaxed whitespace-pre-wrap">${formattedExpl}</div>
+            </div>`;
     } catch(err) {
         btn.innerHTML = 'Explain with AI';
         btn.disabled = false;
