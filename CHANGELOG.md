@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.9.0] - 2026-06-20
+
+### Changed
+- **Higher-contrast colour scheme for Policies vs Rules** (light and dark): Policies keep the indigo identity (now with a deeper border), while Rules switch from blue to **amber** so the two containers are immediately distinguishable instead of reading as the same colour. Applied consistently to the Rule Builder and the Rule Summary page (which previously rendered both as neutral grey), including matching "Policy" / "Rule" badges and the hierarchy caption. Blue is now reserved for conditions/logic tokens, sharpening the separation between a rule and the conditions inside it
+
 ## [1.8.0] - 2026-06-20
 
 ### Added
