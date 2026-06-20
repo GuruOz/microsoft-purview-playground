@@ -132,9 +132,9 @@ function renderPolicies() {
             ruleIssues.forEach(issue => {
                 if (issue.type === 'unreachable') {
                     const escaped = issue.vars.map(v => window.escapeHtml(v)).join(', ');
-                    warningBadgesHtml += `<span class="text-[10px] bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700 px-1.5 py-0.5 rounded font-bold" title="Condition appears both positively and negated: ${escaped}">&#9888; Unreachable</span>`;
+                    warningBadgesHtml += `<span class="text-[10px] bg-red-600 text-white border border-red-700 px-1.5 py-0.5 rounded font-bold shadow-sm" title="Condition appears both positively and negated: ${escaped}">&#9888; Unreachable</span>`;
                 } else if (issue.type === 'duplicate') {
-                    warningBadgesHtml += `<span class="text-[10px] bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 border border-yellow-300 dark:border-yellow-700 px-1.5 py-0.5 rounded font-bold" title="Identical logic to Rule ${issue.duplicateOf}">&#9888; Duplicate of Rule ${issue.duplicateOf}</span>`;
+                    warningBadgesHtml += `<span class="text-[10px] bg-red-600 text-white border border-red-700 px-1.5 py-0.5 rounded font-bold shadow-sm" title="Identical logic to Rule ${issue.duplicateOf}">&#9888; Duplicate of Rule ${issue.duplicateOf}</span>`;
                 }
             });
 
@@ -184,7 +184,7 @@ function renderPolicies() {
                 }
             });
             if (rule.workloads.email && hasServerCondition) {
-                rHeader += `<div class="text-xs text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 p-2 rounded mt-2 mb-2 font-semibold">⚠️ Contains Server-side only conditions. Will be deferred from Client-side pass in Exchange DLP.</div>`;
+                rHeader += `<div class="text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700 p-2 rounded mt-2 mb-2 font-semibold">&#9888; Contains Server-side only conditions. Will be deferred from Client-side pass in Exchange DLP.</div>`;
             }
 
             rDiv.innerHTML = rHeader;
@@ -218,7 +218,7 @@ function renderPolicies() {
                         
                         if (token.val === '(' || token.val === ')') {
                             const bracketColorClasses = [
-                                'text-amber-500 dark:text-amber-400 border-amber-300 dark:border-amber-700/80 bg-amber-500/5 dark:bg-amber-500/10 font-bold',
+                                'text-pink-500 dark:text-pink-400 border-pink-300 dark:border-pink-700/80 bg-pink-500/5 dark:bg-pink-500/10 font-bold',
                                 'text-purple-500 dark:text-purple-400 border-purple-300 dark:border-purple-700/80 bg-purple-500/5 dark:bg-purple-500/10 font-bold',
                                 'text-teal-500 dark:text-teal-400 border-teal-300 dark:border-teal-700/80 bg-teal-500/5 dark:bg-teal-500/10 font-bold',
                                 'text-green-500 dark:text-green-400 border-green-300 dark:border-green-700/80 bg-green-500/5 dark:bg-green-500/10 font-bold'
