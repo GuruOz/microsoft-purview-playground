@@ -45,6 +45,7 @@ loadScript('js/evaluator.js');
 loadScript('js/parser.js');
 loadScript('js/conflict-detector.js');
 loadScript('js/nl-generator.js');
+loadScript('js/summary-ui.js');
 
 beforeEach(() => {
     localStorage.clear();

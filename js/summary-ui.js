@@ -7,6 +7,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     await renderSummary();
 });
 
+// Compact "Copy" button shown beside a rule's logic and plain-English text.
+// `classes` lets callers add modifiers (e.g. 'hidden' until an explanation loads).
+function copyButtonHtml(classes) {
+    return `<button type="button" class="${classes} copy-btn shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-300 transition-colors focus:outline-none" title="Copy to clipboard">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+        <span class="copy-btn-label">Copy</span>
+    </button>`;
+}
+
 async function renderSummary() {
     const container = document.getElementById('summaryContainer');
     if (!container) return;
@@ -44,31 +53,64 @@ async function renderSummary() {
             const rDiv = document.createElement('div');
             rDiv.className = 'p-4 rounded shadow-sm border bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700';
             
+            const exprText = rule.tokens.map(t => t.val).join(' ');
+            const hasExpr = exprText.trim().length > 0;
+
             // Show loading placeholder first
             rDiv.innerHTML = `
                 <div class="flex items-start gap-3">
                     <input type="checkbox" class="rule-checkbox mt-1" data-pindex="${pIndex}" data-rindex="${rIndex}">
-                    <div class="flex-grow space-y-2">
+                    <div class="flex-grow min-w-0 space-y-3">
                         <h3 class="font-bold text-gray-800 dark:text-gray-200">${window.escapeHtml(rule.name)}</h3>
-                        <div class="text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                            ${window.escapeHtml(rule.tokens.map(t => t.val).join(' '))}
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Logic</span>
+                                ${hasExpr ? copyButtonHtml('copy-expression-btn') : ''}
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded break-words">
+                                ${hasExpr ? window.escapeHtml(exprText) : '<span class="italic">No conditions configured.</span>'}
+                            </div>
                         </div>
-                        <div class="text-sm font-medium text-indigo-700 dark:text-indigo-400 summary-text italic">
-                            Generating explanation...
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Plain English</span>
+                                ${copyButtonHtml('copy-explanation-btn hidden')}
+                            </div>
+                            <div class="text-sm font-medium text-indigo-700 dark:text-indigo-400 summary-text italic">
+                                Generating explanation...
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
             rulesContainer.appendChild(rDiv);
-            
+
+            const exprBtn = rDiv.querySelector('.copy-expression-btn');
+            if (exprBtn) {
+                exprBtn.addEventListener('click', () => {
+                    window.copyToClipboard(exprText, 'Rule logic').then(ok => { if (ok) window.flashCopied(exprBtn); });
+                });
+            }
+
             try {
                 const text = await window.generateNaturalLanguage(rule);
-                rDiv.querySelector('.summary-text').innerText = text;
-                rDiv.querySelector('.summary-text').classList.remove('italic');
+                const summaryEl = rDiv.querySelector('.summary-text');
+                summaryEl.innerText = text;
+                summaryEl.classList.remove('italic');
                 rule.cachedSummaryText = text; // Cache it for PDF export
+
+                // The explanation is now available — reveal its copy button.
+                const explBtn = rDiv.querySelector('.copy-explanation-btn');
+                if (explBtn) {
+                    explBtn.classList.remove('hidden');
+                    explBtn.addEventListener('click', () => {
+                        window.copyToClipboard(rule.cachedSummaryText, 'Plain-English explanation').then(ok => { if (ok) window.flashCopied(explBtn); });
+                    });
+                }
             } catch (e) {
-                rDiv.querySelector('.summary-text').innerText = `Error generating explanation: ${e.message}`;
-                rDiv.querySelector('.summary-text').classList.add('text-red-500');
+                const summaryEl = rDiv.querySelector('.summary-text');
+                summaryEl.innerText = `Error generating explanation: ${e.message}`;
+                summaryEl.classList.add('text-red-500');
                 rule.cachedSummaryText = `Error: ${e.message}`;
             }
         }
@@ -284,12 +326,47 @@ window.exportSelectedPDF = function() {
     });
     
     printContainer.innerHTML = contentHtml;
-    
+
     // Trigger native print dialog (users can 'Save as PDF')
     window.print();
-    
+
     // Clean up content after print
     setTimeout(() => {
         printContainer.innerHTML = '';
     }, 1000);
+};
+
+// Copy arbitrary text to the clipboard with graceful fallbacks. Resolves to
+// true on success. Powers the per-rule "Copy" buttons (logic + plain English).
+window.copyToClipboard = function(text, label = 'Text') {
+    const value = text == null ? '' : String(text);
+    if (!value.trim()) {
+        if (window.showToast) window.showToast('Nothing to copy.', 'error');
+        return Promise.resolve(false);
+    }
+    const announce = () => {
+        if (window.showToast) window.showToast(`${label} copied to clipboard.`, 'success');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(value)
+            .then(() => { announce(); return true; })
+            .catch(() => { window.prompt(`Copy ${label}:`, value); return false; });
+    }
+    // Older browsers / insecure contexts: surface the text for manual copy.
+    window.prompt(`Copy ${label}:`, value);
+    return Promise.resolve(false);
+};
+
+// Briefly flip a copy button's label to "Copied!" for tactile feedback.
+window.flashCopied = function(btn) {
+    if (!btn) return;
+    const labelEl = btn.querySelector('.copy-btn-label');
+    if (!labelEl) return;
+    const original = labelEl.textContent;
+    labelEl.textContent = 'Copied!';
+    btn.classList.add('text-green-600', 'dark:text-green-400');
+    setTimeout(() => {
+        labelEl.textContent = original;
+        btn.classList.remove('text-green-600', 'dark:text-green-400');
+    }, 1500);
 };
