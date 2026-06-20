@@ -35,7 +35,11 @@ function registerEventHandlers() {
             const pIndex = parseInt(target.dataset.pindex);
             addRule(pIndex);
         }
-        
+        else if (action === 'duplicate-policy') {
+            const pIndex = parseInt(target.dataset.pindex);
+            duplicatePolicy(pIndex);
+        }
+
         // Rule Actions
         else if (action === 'move-rule-up' || action === 'move-rule-down') {
             const pIndex = parseInt(target.dataset.pindex);
@@ -47,6 +51,11 @@ function registerEventHandlers() {
             const pIndex = parseInt(target.dataset.pindex);
             const rIndex = parseInt(target.dataset.rindex);
             deleteRule(pIndex, rIndex);
+        }
+        else if (action === 'duplicate-rule') {
+            const pIndex = parseInt(target.dataset.pindex);
+            const rIndex = parseInt(target.dataset.rindex);
+            duplicateRule(pIndex, rIndex);
         }
         else if (action === 'clear-logic') {
             const pIndex = parseInt(target.dataset.pindex);
@@ -186,6 +195,35 @@ function addRule(pIndex) {
     setActivePolicyIndex(pIndex);
     setActiveRuleIndex(policies[pIndex].rules.length - 1);
     saveState(`Created Rule "${policies[pIndex].rules[activeRuleIndex].name}"`);
+    renderPolicies();
+    generateTable();
+}
+
+function duplicatePolicy(pIndex) {
+    const orig = policies[pIndex];
+    if (!orig) return;
+    const copy = JSON.parse(JSON.stringify(orig));
+    copy.id = generateId();
+    copy.name = `${orig.name} (copy)`;
+    copy.rules.forEach(r => { r.id = generateId(); });
+    policies.splice(pIndex + 1, 0, copy);
+    setActivePolicyIndex(pIndex + 1);
+    setActiveRuleIndex(0);
+    saveState(`Duplicated Policy "${orig.name}"`);
+    renderPolicies();
+    generateTable();
+}
+
+function duplicateRule(pIndex, rIndex) {
+    const orig = policies[pIndex] && policies[pIndex].rules[rIndex];
+    if (!orig) return;
+    const copy = JSON.parse(JSON.stringify(orig));
+    copy.id = generateId();
+    copy.name = `${orig.name} (copy)`;
+    policies[pIndex].rules.splice(rIndex + 1, 0, copy);
+    setActivePolicyIndex(pIndex);
+    setActiveRuleIndex(rIndex + 1);
+    saveState(`Duplicated Rule "${orig.name}"`);
     renderPolicies();
     generateTable();
 }
@@ -551,6 +589,15 @@ window.initApp = function() {
         poolSearch.oninput = filterConditionPool;
     }
 
+    const workspaceFileInput = document.getElementById('workspaceFileInput');
+    if (workspaceFileInput) {
+        workspaceFileInput.onchange = (e) => {
+            const file = e.target.files && e.target.files[0];
+            window.loadWorkspaceFile(file);
+            e.target.value = ''; // allow re-selecting the same file
+        };
+    }
+
     const clearPoolBtn = document.getElementById('clearPoolBtn');
     if (clearPoolBtn) {
         clearPoolBtn.onclick = () => {
@@ -626,6 +673,50 @@ window.initApp = function() {
         document.getElementById('jsonPayload').value = payload;
         document.getElementById('modalInfo').classList.add('hidden');
         hidePurviewExportWarning();
+    };
+
+    // Download the current workspace as a timestamped .json file (durable backup).
+    window.downloadWorkspaceFile = function() {
+        const payload = serializeVisualizerJSON(policies, variables);
+        const stamp = new Date().toISOString().slice(0, 10);
+        const blob = new Blob([payload], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `purview-playground-workspace-${stamp}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Workspace downloaded.', 'success');
+    };
+
+    // Load a previously downloaded workspace .json file from disk.
+    window.loadWorkspaceFile = function(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const res = parseVisualizerJSON(e.target.result);
+                setPolicies(res.policies);
+                setVariables(res.variables);
+                setActivePolicyIndex(0);
+                setActiveRuleIndex(0);
+                saveState(`Loaded workspace file "${file.name}"`);
+                toggleModal();
+                showToast('Workspace loaded from file.', 'success');
+            } catch (err) {
+                const errEl = document.getElementById('modalError');
+                errEl.innerText = 'Error reading file: ' + err.message;
+                errEl.classList.remove('hidden');
+            }
+        };
+        reader.onerror = () => {
+            const errEl = document.getElementById('modalError');
+            errEl.innerText = 'Could not read the selected file.';
+            errEl.classList.remove('hidden');
+        };
+        reader.readAsText(file);
     };
 
     window.exportToPurviewJSON = function() {

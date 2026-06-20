@@ -12,14 +12,16 @@ This tool gives Purview engineers a visual rule builder where they can compose c
 
 ## Features
 
-- **Visual rule builder** — drag-and-drop conditions onto a canvas and connect them with AND, OR, NOT, and AND NOT operators
+- **Visual rule builder** — drag-and-drop conditions onto a canvas and connect them with AND, OR, NOT, and AND NOT operators; duplicate any rule or whole policy with one click to build variations quickly
 - **Boolean logic evaluator** — evaluates infix token expressions (converted to postfix internally) with correct operator precedence across nested groups
-- **Truth table** — exhaustively enumerates all condition combinations and shows which trigger the rule
+- **Truth table** — exhaustively enumerates all condition combinations and shows which trigger the rule; export the full table (combinations, logic trace, explanation, result) to CSV
 - **Event simulator** — set individual condition values to true/false and immediately see whether each rule fires and which actions are triggered (Monitor, Notify, Override, Block)
 - **Conflict detector** — automatically flags logical contradictions (e.g. a condition AND NOT itself) in a rule's token expression
 - **Natural language explanation** — generates a plain-English summary of each rule; supports three modes: two built-in static templates, plus AI-generated explanations via OpenAI, Anthropic, Google Gemini, or DeepSeek
 - **Rule summary page** — cross-policy view of all rules with selectable export targets
 - **PDF export** — exports the current rule summary to a PDF for documentation or review
+- **Markdown runbook export** — exports selected rules from the summary page as a `.md` runbook (status, workloads, actions, logic, and explanation per rule) for wikis or repos
+- **Workspace file backup** — download the entire workspace as a timestamped `.json` file and load it back later, independent of the browser's local storage
 - **URL sharing** — serializes the entire workspace state into the URL so you can share an exact configuration with a link
 - **PowerShell JSON import** — paste the JSON output of `Get-DlpComplianceRule` (from the Security & Compliance PowerShell module) to reverse-engineer an existing policy into the visual builder
 - **PowerShell JSON export** — generate a JSON payload compatible with `New-DlpComplianceRule` / `Set-DlpComplianceRule`

@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.6.0] - 2026-06-20
+
+### Added
+- **Workspace file backup**: download the current workspace as a timestamped `.json` file, and load one back from disk — durable backup/restore that does not depend on copy-paste or share links (Import / Export dialog)
+- **Truth table CSV export**: a "Download CSV" button on the truth table exports every condition combination, the logic trace, a plain-English explanation, and the final result as an Excel-friendly CSV (UTF-8 BOM, RFC-4180 escaping)
+- **Markdown runbook export**: the Rule Summary page can export selected rules as a `.md` runbook — per rule it records status, workloads, actions, stop-processing, the raw logic, and the plain-English explanation, ready to drop into a wiki or repo
+- **Duplicate rule / duplicate policy**: one-click "Duplicate" buttons clone a rule or an entire policy (with fresh IDs and a "(copy)" name) directly below the original, so variations can be built without rebuilding logic from scratch
+- **Three new example templates**: GDPR – EU Personal Data (Email), HIPAA – Protected Health Information (Email + Endpoint), and Source Code Exfiltration (Endpoint), bringing the gallery to six ready-to-explore scenarios
+
+### Changed
+- The "Load Example" gallery is now rendered from the `DLP_EXAMPLES` data array, so cards can no longer drift out of sync with the underlying examples; gallery cards are keyboard-accessible
+
 ## [1.5.0] - 2026-06-13
 
 ### Added
