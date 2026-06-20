@@ -108,6 +108,88 @@ function updateGlobalSelectAllState() {
     }
 }
 
+// Export the selected rules as a Markdown runbook (.md) — a documentation
+// artifact that drops cleanly into a wiki or repo. Richer than the PDF: it
+// records status, workloads, actions, and stop-processing per rule.
+window.exportSelectedMarkdown = function() {
+    const selectedBoxes = document.querySelectorAll('.rule-checkbox:checked');
+    if (selectedBoxes.length === 0) {
+        alert("Please select at least one rule to export.");
+        return;
+    }
+
+    const blockquote = (text) => String(text || 'Description unavailable.')
+        .split('\n')
+        .map(l => `> ${l}`)
+        .join('\n');
+
+    const policyCount = new Set(Array.from(selectedBoxes).map(b => b.dataset.pindex)).size;
+    const lines = [];
+    lines.push('# Purview Playground — Rule Runbook');
+    lines.push('');
+    lines.push(`_Generated ${new Date().toLocaleString()} • ${selectedBoxes.length} rule(s) across ${policyCount} policy(ies)_`);
+    lines.push('');
+
+    let currentPolicyIndex = -1;
+    selectedBoxes.forEach(box => {
+        const pIdx = parseInt(box.dataset.pindex);
+        const rIdx = parseInt(box.dataset.rindex);
+        const policy = window.policies[pIdx];
+        const rule = policy.rules[rIdx];
+
+        if (pIdx !== currentPolicyIndex) {
+            lines.push('---');
+            lines.push('');
+            lines.push(`## Policy: ${policy.name}`);
+            lines.push('');
+            currentPolicyIndex = pIdx;
+        }
+
+        const actionLabels = [];
+        if (rule.actions) {
+            if (rule.actions.monitor) actionLabels.push('Monitor');
+            if (rule.actions.notify) actionLabels.push('Notify');
+            if (rule.actions.override) actionLabels.push('Override');
+            if (rule.actions.block) actionLabels.push('Block');
+        }
+        const workloads = [];
+        if (rule.workloads && rule.workloads.email) workloads.push('Email');
+        if (rule.workloads && rule.workloads.endpoint) workloads.push('Endpoint');
+        const ruleTokensText = rule.tokens.map(t => t.val).join(' ');
+
+        lines.push(`### Rule: ${rule.name}`);
+        lines.push('');
+        lines.push(`- **Status:** ${rule.enabled === false ? 'Disabled' : 'Enabled'}`);
+        lines.push(`- **Workloads:** ${workloads.length ? workloads.join(', ') : 'None'}`);
+        lines.push(`- **Actions:** ${actionLabels.length ? actionLabels.join(', ') : 'None'}`);
+        lines.push(`- **Stop processing after match:** ${rule.stopProcessing ? 'Yes' : 'No'}`);
+        lines.push('');
+        lines.push('**Logic**');
+        lines.push('');
+        lines.push('```');
+        lines.push(ruleTokensText || 'No conditions configured.');
+        lines.push('```');
+        lines.push('');
+        lines.push('**Plain-English explanation**');
+        lines.push('');
+        lines.push(blockquote(rule.cachedSummaryText));
+        lines.push('');
+    });
+
+    const markdown = lines.join('\n');
+    const stamp = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `purview-playground-runbook-${stamp}.md`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    if (window.showToast) window.showToast('Runbook exported as Markdown.', 'success');
+};
+
 window.exportSelectedPDF = function() {
     const selectedBoxes = document.querySelectorAll('.rule-checkbox:checked');
     if (selectedBoxes.length === 0) {

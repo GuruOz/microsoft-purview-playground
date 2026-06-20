@@ -98,6 +98,7 @@ function renderPolicies() {
                 </div>
                 <div class="flex gap-2">
                     <button data-action="add-rule" data-pindex="${pIndex}" class="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 font-medium shadow-sm">Add Rule</button>
+                    <button data-action="duplicate-policy" data-pindex="${pIndex}" class="text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded hover:bg-indigo-200 dark:hover:bg-indigo-900/50 font-medium shadow-sm">Duplicate</button>
                     <button data-action="delete-policy" data-pindex="${pIndex}" class="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-3 py-1 rounded hover:bg-red-200 dark:hover:bg-red-900/50 font-medium shadow-sm">Delete Policy</button>
                 </div>
             </div>
@@ -157,7 +158,8 @@ function renderPolicies() {
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button data-action="explain-nl" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold border-r border-gray-300 dark:border-gray-600 pr-2">Explain using Natural Language</button>
-                        <button data-action="clear-logic" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold">Clear Logic</button>
+                        <button data-action="duplicate-rule" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">Duplicate</button>
+                        <button data-action="clear-logic" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold border-l border-gray-300 dark:border-gray-600 pl-2">Clear Logic</button>
                         <button data-action="delete-rule" data-pindex="${pIndex}" data-rindex="${rIndex}" class="text-xs text-red-600 dark:text-red-400 hover:underline font-semibold border-l border-red-200 dark:border-red-800 pl-2">Delete Rule</button>
                     </div>
                 </div>
@@ -601,6 +603,8 @@ function generateTable() {
     if (!thead || !tbody || !titleEl) return;
     
     errorMsg.classList.add('hidden');
+    const csvBtn = document.getElementById('downloadCsvBtn');
+    if (csvBtn) csvBtn.classList.add('hidden');
 
     if (policies.length === 0 || !policies[activePolicyIndex] || !policies[activePolicyIndex].rules[activeRuleIndex]) {
         titleEl.innerText = 'Truth Table Evaluation';
@@ -699,13 +703,98 @@ function generateTable() {
     }
     
     tbody.innerHTML = bodyHtml;
-    
+    if (csvBtn) csvBtn.classList.remove('hidden');
+
     if (window.nlSettings && window.nlSettings.enableAITrace && numRows > 0) {
         if (generateAllBtn) generateAllBtn.classList.remove('hidden');
     } else {
         if (generateAllBtn) generateAllBtn.classList.add('hidden');
     }
 }
+
+// Export the active rule's truth table as a CSV file. Recomputes rows from the
+// rule tokens (same enumeration as generateTable) so the CSV matches the UI but
+// carries plain-text traces/explanations rather than HTML.
+window.downloadTruthTableCSV = function() {
+    if (policies.length === 0 || !policies[activePolicyIndex] || !policies[activePolicyIndex].rules[activeRuleIndex]) {
+        window.showToast('No active rule to export.');
+        return;
+    }
+    const activePolicy = policies[activePolicyIndex];
+    const activeRule = activePolicy.rules[activeRuleIndex];
+
+    if (!activePolicy.enabled || !activeRule.enabled) {
+        window.showToast('The active rule or its policy is disabled — nothing to export.');
+        return;
+    }
+    if (activeRule.tokens.length === 0) {
+        window.showToast('The active rule has no conditions to export.');
+        return;
+    }
+
+    const allVarsSet = new Set();
+    activeRule.tokens.forEach(t => { if (t.type === 'variable') allVarsSet.add(t.val); });
+    const uniqueVars = Array.from(allVarsSet);
+
+    if (uniqueVars.length > 12) {
+        window.showToast('Too many unique conditions to export.');
+        return;
+    }
+
+    let postfix;
+    try {
+        postfix = infixToPostfix(activeRule.tokens);
+    } catch (e) {
+        window.showToast('Cannot export: ' + e.message);
+        return;
+    }
+
+    // RFC-4180 style escaping: wrap in quotes and double any internal quotes.
+    const esc = (val) => {
+        const s = String(val ?? '');
+        return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    const header = [...uniqueVars, 'Logic Trace', 'Explanation', 'Result'];
+    const rows = [header.map(esc).join(',')];
+
+    const numRows = Math.pow(2, uniqueVars.length);
+    for (let i = 0; i < numRows; i++) {
+        const currentValues = {};
+        const cells = [];
+        for (let j = 0; j < uniqueVars.length; j++) {
+            const bit = (i >> (uniqueVars.length - 1 - j)) & 1;
+            const val = bit === 1;
+            currentValues[uniqueVars[j]] = val;
+            const token = activeRule.tokens.find(t => t.type === 'variable' && t.val === uniqueVars[j]);
+            if (token) {
+                window.expandTokenSimVars(token).forEach(k => { currentValues[k] = val; });
+            }
+            cells.push(val ? 'T' : 'F');
+        }
+        const result = evaluatePostfix(postfix, currentValues);
+        const trace = generateEvaluationTrace(activeRule.tokens, currentValues).replace(/<[^>]+>/g, '');
+        const expl = window.generateStaticTraceExplanation
+            ? window.generateStaticTraceExplanation(activeRule.tokens, currentValues, result)
+            : '';
+        cells.push(trace, expl, result ? 'TRUE' : 'FALSE');
+        rows.push(cells.map(esc).join(','));
+    }
+
+    // Prepend UTF-8 BOM so Excel reads accented characters correctly.
+    const csv = '﻿' + rows.join('\r\n');
+    const safeName = `${activePolicy.name}-${activeRule.name}`.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'truth-table';
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${safeName}-truth-table.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    window.showToast('Truth table exported as CSV.', 'success');
+};
 
 window.handleAITraceExplanation = async function(btn) {
     const rawTrace = btn.dataset.rawTrace;
