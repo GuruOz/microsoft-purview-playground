@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.9.1] - 2026-06-20
+
+### Changed
+- **Warning colours separated from the new amber Rules** so nothing blends together: rule conflict badges ("Unreachable" / "Duplicate of Rule …") are now a solid, high-visibility **red** instead of pale yellow; the "Contains server-side only conditions" deferral notice is now **purple** (matching the "deferred to server" indicator in the simulator) instead of orange, which read almost identically to the amber rule card
+- The outermost nesting-bracket colour in the rule canvas changed from amber to **pink**, since amber brackets on an amber rule card were hard to read; the depth cycle is now pink → purple → teal → green
+
 ## [1.9.0] - 2026-06-20
 
 ### Changed
