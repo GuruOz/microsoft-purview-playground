@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.7.0] - 2026-06-20
+
+### Added
+- **Copy rule logic / copy plain-English**: each rule on the Rule Summary page now has two one-click "Copy" buttons — one copies the raw boolean expression, the other copies the generated plain-English explanation — so a single rule can be dropped into a ticket, chat, or doc without exporting the whole runbook. The explanation's copy button appears once its text finishes generating; buttons flash "Copied!" and fall back to a manual prompt if the clipboard API is blocked
+- The summary card now labels its two sections ("Logic" and "Plain English") for clarity
+
 ## [1.6.0] - 2026-06-20
 
 ### Added

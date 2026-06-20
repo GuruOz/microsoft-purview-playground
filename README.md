@@ -18,7 +18,7 @@ This tool gives Purview engineers a visual rule builder where they can compose c
 - **Event simulator** — set individual condition values to true/false and immediately see whether each rule fires and which actions are triggered (Monitor, Notify, Override, Block)
 - **Conflict detector** — automatically flags logical contradictions (e.g. a condition AND NOT itself) in a rule's token expression
 - **Natural language explanation** — generates a plain-English summary of each rule; supports three modes: two built-in static templates, plus AI-generated explanations via OpenAI, Anthropic, Google Gemini, or DeepSeek
-- **Rule summary page** — cross-policy view of all rules with selectable export targets
+- **Rule summary page** — cross-policy view of all rules with selectable export targets, plus per-rule one-click buttons to copy a rule's raw boolean expression or its plain-English explanation to the clipboard
 - **PDF export** — exports the current rule summary to a PDF for documentation or review
 - **Markdown runbook export** — exports selected rules from the summary page as a `.md` runbook (status, workloads, actions, logic, and explanation per rule) for wikis or repos
 - **Workspace file backup** — download the entire workspace as a timestamped `.json` file and load it back later, independent of the browser's local storage
