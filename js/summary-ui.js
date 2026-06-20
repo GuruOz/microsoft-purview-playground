@@ -31,12 +31,15 @@ async function renderSummary() {
         const policy = window.policies[pIndex];
         
         const pDiv = document.createElement('div');
-        pDiv.className = 'p-4 rounded shadow-sm border bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 mb-6';
-        
+        pDiv.className = 'p-4 rounded shadow-sm border-2 bg-indigo-50 dark:bg-indigo-950/30 border-indigo-400 dark:border-indigo-600 mb-6';
+
         let pHeader = `
-            <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                <h2 class="font-bold text-lg dark:text-white">${window.escapeHtml(policy.name)}</h2>
-                <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300">
+            <div class="flex flex-wrap justify-between items-center gap-2 mb-4 border-b border-indigo-200 dark:border-indigo-800/60 pb-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[10px] font-bold uppercase tracking-widest bg-indigo-600 text-white px-1.5 py-0.5 rounded shrink-0">Policy</span>
+                    <h2 class="font-bold text-lg dark:text-white">${window.escapeHtml(policy.name)}</h2>
+                </div>
+                <label class="flex items-center gap-2 cursor-pointer text-sm font-semibold text-indigo-700 dark:text-indigo-300">
                     <input type="checkbox" class="policy-select-all" data-pindex="${pIndex}"> Select All Rules
                 </label>
             </div>
@@ -51,7 +54,7 @@ async function renderSummary() {
             const rule = policy.rules[rIndex];
             
             const rDiv = document.createElement('div');
-            rDiv.className = 'p-4 rounded shadow-sm border bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700';
+            rDiv.className = 'p-4 rounded shadow-sm border-2 bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700';
             
             const exprText = rule.tokens.map(t => t.val).join(' ');
             const hasExpr = exprText.trim().length > 0;
@@ -61,13 +64,16 @@ async function renderSummary() {
                 <div class="flex items-start gap-3">
                     <input type="checkbox" class="rule-checkbox mt-1" data-pindex="${pIndex}" data-rindex="${rIndex}">
                     <div class="flex-grow min-w-0 space-y-3">
-                        <h3 class="font-bold text-gray-800 dark:text-gray-200">${window.escapeHtml(rule.name)}</h3>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[10px] font-bold uppercase tracking-widest bg-amber-600 text-white px-1.5 py-0.5 rounded shrink-0">Rule</span>
+                            <h3 class="font-bold text-gray-800 dark:text-gray-200">${window.escapeHtml(rule.name)}</h3>
+                        </div>
                         <div class="space-y-1">
                             <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500">Logic</span>
+                                <span class="text-xs font-semibold uppercase tracking-wide text-amber-700/80 dark:text-amber-500/80">Logic</span>
                                 ${hasExpr ? copyButtonHtml('copy-expression-btn') : ''}
                             </div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400 font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded break-words">
+                            <div class="text-sm text-gray-600 dark:text-gray-400 font-mono bg-white dark:bg-gray-800 border border-amber-200/60 dark:border-amber-900/40 p-2 rounded break-words">
                                 ${hasExpr ? window.escapeHtml(exprText) : '<span class="italic">No conditions configured.</span>'}
                             </div>
                         </div>

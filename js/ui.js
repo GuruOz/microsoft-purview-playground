@@ -82,7 +82,7 @@ function renderPolicies() {
 
     policies.forEach((policy, pIndex) => {
         const pDiv = document.createElement('div');
-        pDiv.className = `p-4 rounded shadow-sm border-2 relative transition-colors ${policy.enabled ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-700' : 'bg-indigo-50/40 dark:bg-indigo-950/10 border-indigo-200 dark:border-indigo-900 opacity-60'}`;
+        pDiv.className = `p-4 rounded shadow-sm border-2 relative transition-colors ${policy.enabled ? 'bg-indigo-50 dark:bg-indigo-950/30 border-indigo-400 dark:border-indigo-600' : 'bg-indigo-50/40 dark:bg-indigo-950/10 border-indigo-300 dark:border-indigo-800 opacity-60'}`;
 
         let pHeader = `
             <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
@@ -97,12 +97,12 @@ function renderPolicies() {
                     <label class="flex items-center gap-1 text-sm font-normal ml-4 cursor-pointer dark:text-gray-300"><input type="checkbox" data-action="toggle-policy" data-pindex="${pIndex}" ${policy.enabled ? 'checked' : ''}> Enabled</label>
                 </div>
                 <div class="flex gap-2">
-                    <button data-action="add-rule" data-pindex="${pIndex}" class="text-sm bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-3 py-1 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 font-medium shadow-sm">Add Rule</button>
+                    <button data-action="add-rule" data-pindex="${pIndex}" class="text-sm bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 px-3 py-1 rounded hover:bg-amber-200 dark:hover:bg-amber-900/50 font-medium shadow-sm">Add Rule</button>
                     <button data-action="duplicate-policy" data-pindex="${pIndex}" class="text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-1 rounded hover:bg-indigo-200 dark:hover:bg-indigo-900/50 font-medium shadow-sm">Duplicate</button>
                     <button data-action="delete-policy" data-pindex="${pIndex}" class="text-sm bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-3 py-1 rounded hover:bg-red-200 dark:hover:bg-red-900/50 font-medium shadow-sm">Delete Policy</button>
                 </div>
             </div>
-            <div class="space-y-4 pl-6 border-l-2 border-indigo-300 dark:border-indigo-700">
+            <div class="space-y-4 pl-6 border-l-2 border-indigo-400 dark:border-indigo-600">
         `;
         pDiv.innerHTML = pHeader;
 
@@ -119,10 +119,10 @@ function renderPolicies() {
             const ruleIssues = policyConflicts[rIndex] || [];
 
             const rDiv = document.createElement('div');
-            let rClass = 'p-4 rounded shadow-sm border transition-all cursor-pointer ';
-            if (isActive) rClass += 'bg-blue-50 dark:bg-blue-950/40 border-blue-400 ring-1 ring-blue-400 ';
+            let rClass = 'p-4 rounded shadow-sm border-2 transition-all cursor-pointer ';
+            if (isActive) rClass += 'bg-amber-100 dark:bg-amber-950/50 border-amber-500 ring-1 ring-amber-400 ';
             else if (!isRuleEnabled) rClass += 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 opacity-60 ';
-            else rClass += 'bg-white dark:bg-gray-800 border-blue-200 dark:border-blue-900 ';
+            else rClass += 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700 ';
 
             rDiv.className = rClass;
             rDiv.dataset.pindex = pIndex;
@@ -145,9 +145,9 @@ function renderPolicies() {
                             <button data-action="move-rule-up" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule up" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === 0 ? 'disabled class="opacity-30"' : ''}>&#9650;</button>
                             <button data-action="move-rule-down" data-pindex="${pIndex}" data-rindex="${rIndex}" aria-label="Move rule down" class="text-gray-400 hover:text-black dark:hover:text-white leading-none text-xs" ${rIndex === policy.rules.length - 1 ? 'disabled class="opacity-30"' : ''}>&#9660;</button>
                         </div>
-                        <span class="text-[10px] font-bold uppercase tracking-widest bg-blue-500 text-white px-1.5 py-0.5 rounded shrink-0">Rule</span>
-                        <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-blue-300 rounded px-1 min-w-[100px] max-w-full break-words dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
-                        <span class="text-xs font-mono ${isActive ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 dark:text-gray-400'}">Priority ${rIndex} ${isActive ? '(Editing)' : ''}</span>
+                        <span class="text-[10px] font-bold uppercase tracking-widest bg-amber-600 text-white px-1.5 py-0.5 rounded shrink-0">Rule</span>
+                        <h3 class="font-semibold outline-none focus:bg-white dark:focus:bg-gray-600 focus:ring-2 focus:ring-amber-300 rounded px-1 min-w-[100px] max-w-full break-words dark:text-white" contenteditable="true" data-type="rule" data-pindex="${pIndex}" data-rindex="${rIndex}">${window.escapeHtml(rule.name)}</h3>
+                        <span class="text-xs font-mono ${isActive ? 'text-amber-700 dark:text-amber-400 font-bold' : 'text-gray-500 dark:text-gray-400'}">Priority ${rIndex} ${isActive ? '(Editing)' : ''}</span>
                         ${warningBadgesHtml}
 
                         <div class="flex gap-3 ml-2 border-l border-gray-300 dark:border-gray-600 pl-3" onclick="event.stopPropagation()">
