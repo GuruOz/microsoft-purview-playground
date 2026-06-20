@@ -336,26 +336,8 @@ window.exportSelectedPDF = function() {
     }, 1000);
 };
 
-// Copy arbitrary text to the clipboard with graceful fallbacks. Resolves to
-// true on success. Powers the per-rule "Copy" buttons (logic + plain English).
-window.copyToClipboard = function(text, label = 'Text') {
-    const value = text == null ? '' : String(text);
-    if (!value.trim()) {
-        if (window.showToast) window.showToast('Nothing to copy.', 'error');
-        return Promise.resolve(false);
-    }
-    const announce = () => {
-        if (window.showToast) window.showToast(`${label} copied to clipboard.`, 'success');
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        return navigator.clipboard.writeText(value)
-            .then(() => { announce(); return true; })
-            .catch(() => { window.prompt(`Copy ${label}:`, value); return false; });
-    }
-    // Older browsers / insecure contexts: surface the text for manual copy.
-    window.prompt(`Copy ${label}:`, value);
-    return Promise.resolve(false);
-};
+// copyToClipboard lives in state.js (shared by every page); summary-ui.js just
+// uses it via window.copyToClipboard from the per-rule "Copy" buttons.
 
 // Briefly flip a copy button's label to "Copied!" for tactile feedback.
 window.flashCopied = function(btn) {

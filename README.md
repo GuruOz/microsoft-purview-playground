@@ -15,7 +15,7 @@ This tool gives Purview engineers a visual rule builder where they can compose c
 - **Visual rule builder** — drag-and-drop conditions onto a canvas and connect them with AND, OR, NOT, and AND NOT operators; duplicate any rule or whole policy with one click to build variations quickly
 - **Boolean logic evaluator** — evaluates infix token expressions (converted to postfix internally) with correct operator precedence across nested groups
 - **Truth table** — exhaustively enumerates all condition combinations and shows which trigger the rule; export the full table (combinations, logic trace, explanation, result) to CSV
-- **Event simulator** — set individual condition values to true/false and immediately see whether each rule fires and which actions are triggered (Monitor, Notify, Override, Block)
+- **Event simulator** — set individual condition values to true/false and immediately see whether each rule fires and which actions are triggered (Monitor, Notify, Override, Block); copy the run as a plain-text report or download it as a `.txt` file
 - **Conflict detector** — automatically flags logical contradictions (e.g. a condition AND NOT itself) in a rule's token expression
 - **Natural language explanation** — generates a plain-English summary of each rule; supports three modes: two built-in static templates, plus AI-generated explanations via OpenAI, Anthropic, Google Gemini, or DeepSeek
 - **Rule summary page** — cross-policy view of all rules with selectable export targets, plus per-rule one-click buttons to copy a rule's raw boolean expression or its plain-English explanation to the clipboard

@@ -520,6 +520,7 @@ function evaluatePhase(policiesList, ignoreServerConditions) {
 
     return {
         html,
+        policyResults: evalResult.policyResults,
         phaseActions: evalResult.consolidatedActions,
         matchedAny: evalResult.matchedAny,
         overrodeBlock: evalResult.overrodeBlock,
@@ -565,8 +566,18 @@ function runSimulation() {
     if (policies.length === 0) {
         if (window.logEvent) window.logEvent('info', 'simulator', `No policies configured to simulate`);
         resultEl.innerHTML = `<div class="text-gray-500 text-sm italic p-2 border border-gray-200 dark:border-gray-700 rounded bg-gray-50 dark:bg-gray-800 max-w-2xl mx-auto">No policies configured to simulate.</div>`;
+        window.clearSimulationExport();
         return;
     }
+
+    // Snapshot of the event being simulated — used by the results export so the
+    // report reflects exactly what was run, even if inputs change afterwards.
+    const trueConditions = Object.keys(simulatorState)
+        .filter(k => k !== '_USER_OVERRIDE_' && simulatorState[k] === true)
+        .sort((a, b) => a.localeCompare(b));
+    const userOverride = !!simulatorState['_USER_OVERRIDE_'];
+    const selectedOption = channelEl.options[channelEl.selectedIndex];
+    const channelLabel = selectedOption ? selectedOption.text : channel;
 
     if (window.logEvent) {
         // Deep copy simulatorState to log the snapshot
@@ -614,6 +625,19 @@ function runSimulation() {
 
         finalHtml += renderSummaryHtml({ phaseActions: combinedActions, matchedAny, overrodeBlock, failedOverrideBlock }, "Combined Final Outcome");
 
+        window.lastSimulationRun = {
+            timestamp: new Date().toLocaleString(),
+            channelValue: channel,
+            channelLabel,
+            trueConditions,
+            userOverride,
+            phases: [
+                { title: 'Phase 1: Client-side Pre-send', policyResults: p1.policyResults },
+                { title: 'Phase 2: Server-side Transport', policyResults: p2.policyResults }
+            ],
+            outcome: { title: 'Combined Final Outcome', matchedAny, actions: combinedActions, overrodeBlock, failedOverrideBlock }
+        };
+
         if (window.logEvent) {
             window.logEvent('info', 'simulator', `Simulation completed for Email`, {
                 matchedAny, combinedActions, overrodeBlock, failedOverrideBlock
@@ -625,6 +649,18 @@ function runSimulation() {
         finalHtml += p.html;
         finalHtml += renderSummaryHtml(p, "Final Outcome");
 
+        window.lastSimulationRun = {
+            timestamp: new Date().toLocaleString(),
+            channelValue: channel,
+            channelLabel,
+            trueConditions,
+            userOverride,
+            phases: [
+                { title: 'Endpoint Evaluation', policyResults: p.policyResults }
+            ],
+            outcome: { title: 'Final Outcome', matchedAny: p.matchedAny, actions: p.phaseActions, overrodeBlock: p.overrodeBlock, failedOverrideBlock: p.failedOverrideBlock }
+        };
+
         if (window.logEvent) {
             window.logEvent('info', 'simulator', `Simulation completed for Endpoint`, {
                 matchedAny: p.matchedAny, actions: p.phaseActions, overrodeBlock: p.overrodeBlock, failedOverrideBlock: p.failedOverrideBlock
@@ -633,8 +669,133 @@ function runSimulation() {
     }
 
     resultEl.innerHTML = finalHtml;
+
+    // A run just produced results — reveal the export (copy / download) controls.
+    const exportBar = document.getElementById('simExportBar');
+    if (exportBar) exportBar.classList.remove('hidden');
 }
 
+// --- Results export ---------------------------------------------------------
+// Turn the structured snapshot from the last run into a plain-text report that
+// can be copied to the clipboard or saved to a .txt file. Pure (no DOM) so it
+// is unit-testable and faithful to what was actually evaluated.
+
+function describeRuleResult(rule) {
+    if (rule.enabled === false) return `Rule: ${rule.name} — Skipped (${rule.skipReason || 'Rule disabled'})`;
+    if (rule.skipped) return `Rule: ${rule.name} — Skipped (${rule.skipReason || 'Skipped'})`;
+    if (rule.deferred) return `Rule: ${rule.name} — Deferred to server`;
+    if (rule.matched) {
+        const acts = Object.keys(rule.actions || {}).filter(k => rule.actions[k]).map(k => k.toUpperCase());
+        let line = `Rule: ${rule.name} — MATCH | Actions: ${acts.length ? acts.join(', ') : 'NONE'}`;
+        if (rule.failedOverrideBlock) line += ' | Blocked (user did not override) — evaluation halted';
+        else if (rule.overrodeBlock) line += ' | Block bypassed via override';
+        else if (rule.ruleBlock) line += ' | Evaluation halted (block)';
+        return line;
+    }
+    return `Rule: ${rule.name} — No match`;
+}
+
+function formatOutcomeActions(outcome) {
+    const a = outcome.actions || {};
+    const active = [];
+    if (a.monitor) active.push('Monitor');
+    if (a.notify) active.push('Notify');
+    if (a.block && !outcome.failedOverrideBlock) active.push('Block');
+
+    const parts = [];
+    let actionString = active.join(', ');
+    if (actionString === '' && !outcome.failedOverrideBlock && !outcome.overrodeBlock) actionString = 'None';
+    if (actionString) parts.push(actionString);
+    if (outcome.overrodeBlock) parts.push('Block bypassed via override');
+    if (outcome.failedOverrideBlock) parts.push('Blocked (user did not override)');
+    return parts.length ? parts.join('; ') : 'None';
+}
+
+function buildSimulationReport(run) {
+    if (!run) return '';
+    const lines = [];
+    lines.push('Purview Playground — Simulation Report');
+    lines.push(`Generated: ${run.timestamp}`);
+    lines.push(`Channel: ${run.channelLabel}`);
+    lines.push('');
+
+    lines.push('Event conditions set to TRUE:');
+    if (!run.trueConditions || run.trueConditions.length === 0) {
+        lines.push('  (none — all conditions False)');
+    } else {
+        run.trueConditions.forEach(c => lines.push(`  - ${c}`));
+    }
+    lines.push(`User applied Override: ${run.userOverride ? 'Yes' : 'No'}`);
+    lines.push('');
+
+    run.phases.forEach(phase => {
+        lines.push(`== ${phase.title} ==`);
+        if (!phase.policyResults || phase.policyResults.length === 0) {
+            lines.push('  (no policies)');
+        }
+        (phase.policyResults || []).forEach(policy => {
+            let head = `Policy: ${policy.name} (Priority ${policy.priority})`;
+            if (policy.enabled === false) head += ' — DISABLED';
+            else if (policy.skipped) head += ' — skipped (evaluation halted)';
+            lines.push(head);
+
+            if (!policy.rules || policy.rules.length === 0) {
+                lines.push('  (no active rules)');
+            } else {
+                policy.rules.forEach(rule => lines.push('  ' + describeRuleResult(rule)));
+            }
+        });
+        lines.push('');
+    });
+
+    const o = run.outcome;
+    lines.push(`== ${o.title} ==`);
+    if (o.matchedAny) {
+        lines.push('Rules matched: Yes');
+        lines.push(`Actions: ${formatOutcomeActions(o)}`);
+    } else {
+        lines.push('Rules matched: No');
+        lines.push('Outcome: No rules matched. Default allow behavior applies.');
+    }
+    lines.push('');
+    return lines.join('\n');
+}
+
+window.copySimulationResult = function() {
+    if (!window.lastSimulationRun) {
+        if (window.showToast) window.showToast('Run a simulation first.', 'error');
+        return;
+    }
+    window.copyToClipboard(buildSimulationReport(window.lastSimulationRun), 'Simulation report');
+};
+
+window.downloadSimulationResult = function() {
+    if (!window.lastSimulationRun) {
+        if (window.showToast) window.showToast('Run a simulation first.', 'error');
+        return;
+    }
+    const report = buildSimulationReport(window.lastSimulationRun);
+    const stamp = new Date().toISOString().slice(0, 10);
+    const blob = new Blob([report], { type: 'text/plain;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `purview-playground-simulation-${stamp}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    if (window.showToast) window.showToast('Simulation report downloaded.', 'success');
+};
+
+// Forget the last run and hide the export controls (e.g. on reset / no policies).
+window.clearSimulationExport = function() {
+    window.lastSimulationRun = null;
+    const exportBar = document.getElementById('simExportBar');
+    if (exportBar) exportBar.classList.add('hidden');
+};
+
+window.buildSimulationReport = buildSimulationReport;
 window.filterSimulatorVariables = filterSimulatorVariables;
 window.updateSimulatorVariables = updateSimulatorVariables;
 window.renderSimulatorUI = renderSimulatorUI;

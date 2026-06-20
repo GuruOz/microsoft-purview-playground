@@ -11,7 +11,18 @@ function registerEventHandlers() {
             resetSimulatorInputs();
             const result = document.getElementById('simulationResult');
             if (result) result.innerHTML = '';
+            window.clearSimulationExport();
         };
+    }
+
+    const copySimBtn = document.getElementById('copySimResultBtn');
+    if (copySimBtn) {
+        copySimBtn.onclick = () => window.copySimulationResult();
+    }
+
+    const downloadSimBtn = document.getElementById('downloadSimResultBtn');
+    if (downloadSimBtn) {
+        downloadSimBtn.onclick = () => window.downloadSimulationResult();
     }
 
     const simSearch = document.getElementById('simSearchInput');
