@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [1.8.0] - 2026-06-20
+
+### Added
+- **Simulator results export**: after running a simulation, two new buttons in the Evaluation Trace header let you **Copy** the result as a plain-text report or **Download** it as a timestamped `.txt` file. The report captures the channel, the conditions set to True, the user-override choice, every policy/rule outcome per phase (match / no-match / skipped / deferred / disabled, with actions and halt reasons), and the final bundled outcome — a snapshot of exactly what was evaluated, independent of later input changes
+
+### Changed
+- The clipboard helper is now shared across pages (`window.copyToClipboard` in `state.js`), powering both the Rule Summary copy buttons and the new Simulator export
+
 ## [1.7.0] - 2026-06-20
 
 ### Added

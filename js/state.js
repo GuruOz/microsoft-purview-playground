@@ -356,3 +356,25 @@ if (!window.showToast) {
         }, 4000);
     };
 }
+
+// Copy arbitrary text to the clipboard with graceful fallbacks. Resolves to
+// true on success. Shared across pages (Rule Summary copy buttons, Simulator
+// results export) — lives in state.js because every page loads it.
+window.copyToClipboard = function(text, label = 'Text') {
+    const value = text == null ? '' : String(text);
+    if (!value.trim()) {
+        if (window.showToast) window.showToast('Nothing to copy.', 'error');
+        return Promise.resolve(false);
+    }
+    const announce = () => {
+        if (window.showToast) window.showToast(`${label} copied to clipboard.`, 'success');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        return navigator.clipboard.writeText(value)
+            .then(() => { announce(); return true; })
+            .catch(() => { window.prompt(`Copy ${label}:`, value); return false; });
+    }
+    // Older browsers / insecure contexts: surface the text for manual copy.
+    window.prompt(`Copy ${label}:`, value);
+    return Promise.resolve(false);
+};

@@ -99,9 +99,21 @@
 
             <!-- Right Side: Run Output Trace Timeline -->
             <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-5 rounded shadow-sm border border-gray-200 dark:border-gray-700 min-h-[60vh] flex flex-col">
-                <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white">4. Evaluation Trace Timeline</h2>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Displays the matching trace path of rule evaluations and actions triggered in sequence.</p>
+                <div class="border-b border-gray-200 dark:border-gray-700 pb-2 mb-4 flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800 dark:text-white">4. Evaluation Trace Timeline</h2>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Displays the matching trace path of rule evaluations and actions triggered in sequence.</p>
+                    </div>
+                    <div id="simExportBar" class="hidden flex items-center gap-2">
+                        <button id="copySimResultBtn" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-3 py-1.5 rounded shadow-sm" title="Copy the simulation report to the clipboard">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            Copy
+                        </button>
+                        <button id="downloadSimResultBtn" class="inline-flex items-center gap-1.5 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded shadow-sm" title="Download the simulation report as a .txt file">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Download
+                        </button>
+                    </div>
                 </div>
                 
                 <div id="simulationResult" class="flex-grow flex flex-col justify-center">
