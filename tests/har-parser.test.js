@@ -195,6 +195,51 @@ describe('parseRuleXml – targetContext and actions', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Item.DisplayName is the item's display name, which is the SUBJECT on a mail item and
+// the file name on a file. It used to render unconditionally as "Document name contains
+// words", so the two real Exchange rules using it (GRA006/GRA007 — whose own names and
+// policy tips both say "Subject") read as if they matched a filename.
+describe('parseRuleXml – Item.DisplayName is workload-aware', () => {
+    const subjectScan = '<textScan target="Item.DisplayName" processorId="7187eb52-3321-49b2-8a54-ff7ef1317892" suppl="keywordMatch" evalExtendedStream="False"></textScan>';
+    const recipientDomain = '<is property="Item.SharedWithDomains" type="System.Collections.Generic.List`1[Microsoft.Office.CompliancePolicy.Domain]" Workload="Exchange"><value>RWSentosa.com</value></is>';
+
+    test('an Exchange rule reads it as the subject', () => {
+        const xml = ruleXml('<and>' + subjectScan + recipientDomain + '</and>');
+        const result = window.parseRuleXml(xml, SIT_MAP);
+        const subject = result.tokens.find(t => t.type === 'variable' && /Subject/.test(t.val));
+        expect(subject.val).toBe('Subject contains words or phrases: (keyword list not in capture)');
+        expect(subject.targetContext).toBe('Message');
+    });
+
+    test('the base already exists in the shared condition vocabulary', () => {
+        // Imported conditions must merge into the existing pool, not invent a string.
+        const bases = Object.values(window.purviewConditions).flat().filter(c => c && c.base).map(c => c.base);
+        expect(bases).toContain('Subject contains words or phrases');
+    });
+
+    test('a Workload="Exchange" attribute alone is enough to identify it', () => {
+        const xml = ruleXml('<and>' + subjectScan + '<is property="Item.ContentExtensions" Workload="Exchange"><value>doc</value></is></and>');
+        const result = window.parseRuleXml(xml, SIT_MAP);
+        expect(result.tokens.some(t => /Subject contains words or phrases/.test(t.val || ''))).toBe(true);
+    });
+
+    test('a non-Exchange rule still reads it as a document name', () => {
+        // Endpoint/SharePoint rules genuinely mean the file name here.
+        const xml = ruleXml(subjectScan);
+        const result = window.parseRuleXml(xml, SIT_MAP);
+        expect(result.tokens[0].val).toBe('Document name contains words: (keyword list not in capture)');
+    });
+
+    test('the keyword list stays degraded either way — only the label changed', () => {
+        const xml = ruleXml('<and>' + subjectScan + recipientDomain + '</and>');
+        const result = window.parseRuleXml(xml, SIT_MAP);
+        const subject = result.tokens.find(t => t.type === 'variable' && /Subject/.test(t.val));
+        expect(subject.degraded).toBe('keyword-list');
+        expect(result.warnings.some(w => w.type === 'keyword-list')).toBe(true);
+    });
+});
+
+// ---------------------------------------------------------------------------
 describe('parseRuleXml – placeholders never silently drop', () => {
     test('textScan produces a keyword-list marker and warning', () => {
         const xml = ruleXml('<textScan target="Item.DisplayName" processorId="63f7bc22-87b5-4bce-bc1f-7a6f838c35cb" suppl="keywordMatch" evalExtendedStream="False"></textScan>');
