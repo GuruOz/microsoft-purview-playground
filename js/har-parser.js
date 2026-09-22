@@ -198,6 +198,21 @@
             || value.indexOf(MARKER_SIT_PREFIX) !== -1;
     }
 
+    // Item.DisplayName means different things per workload: on a mail item it is the
+    // SUBJECT, on a file it is the file name. The textScan element carries no workload
+    // of its own, so infer it from the rest of the rule — an explicit Workload="Exchange"
+    // on any sibling, or an Exchange-only condition property such as recipient domain.
+    function isExchangeRule(el) {
+        const doc = el && el.ownerDocument;
+        if (!doc) return false;
+        if (doc.querySelector('[property="Item.SharedWithDomains"]')) return true;
+        const scoped = doc.querySelectorAll('[Workload]');
+        for (let i = 0; i < scoped.length; i += 1) {
+            if ((scoped[i].getAttribute('Workload') || '').indexOf('Exchange') !== -1) return true;
+        }
+        return false;
+    }
+
     // Convert a single RuleXml predicate element into a visualizer token.
     // Signature: (el, sitMap, warnings, variables)
     window.harConditionToken = function(el, sitMap, warnings, variables, catalogs) {
@@ -259,7 +274,15 @@
             } else if (target.toLowerCase().indexOf('header') !== -1) {
                 base = 'Header contains words or phrases';
             } else if (target === 'Item.DisplayName') {
-                base = 'Document name contains words';
+                // Exchange rules mean the subject here; "Subject contains words or
+                // phrases" already exists in purviewConditions, so it merges into the
+                // existing vocabulary rather than inventing a new base string.
+                if (isExchangeRule(el)) {
+                    base = 'Subject contains words or phrases';
+                    targetContext = 'Message';
+                } else {
+                    base = 'Document name contains words';
+                }
             } else if (target.indexOf('.Document') !== -1) {
                 base = 'Document name contains words';
                 targetContext = 'Attachment';
